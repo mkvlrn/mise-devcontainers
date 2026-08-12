@@ -19,3 +19,6 @@ chmod 0440 "/etc/sudoers.d/$USERNAME"
 mkdir -p "/home/$USERNAME/.ssh"
 chown "$USERNAME:$USERNAME" "/home/$USERNAME/.ssh"
 chmod 700 "/home/$USERNAME/.ssh"
+
+# set ownership of .config
+chown -R dev:dev /home/dev/.config
