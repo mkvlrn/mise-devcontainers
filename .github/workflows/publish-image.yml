@@ -27,8 +27,12 @@ jobs:
       - id: changes
         shell: bash
         run: |
+          all_distros() {
+            find distros -mindepth 1 -maxdepth 1 -type d -printf '"%f"\n' | paste -sd, -
+          }
+
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo 'distros=["archlinux","alpine","debian"]' >> "$GITHUB_OUTPUT"
+            echo "distros=[$(all_distros)]" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -38,20 +42,17 @@ jobs:
             > /tmp/changed-files
 
           if grep -q '^common/' /tmp/changed-files; then
-            echo 'distros=["archlinux","alpine","debian"]' >> "$GITHUB_OUTPUT"
+            echo "distros=[$(all_distros)]" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           DISTROS=()
 
-          grep -q '^distros/archlinux/' /tmp/changed-files &&
-            DISTROS+=("archlinux")
-
-          grep -q '^distros/alpine/' /tmp/changed-files &&
-            DISTROS+=("alpine")
-
-          grep -q '^distros/debian/' /tmp/changed-files &&
-            DISTROS+=("debian")
+          while IFS= read -r distro; do
+            if grep -q "^distros/${distro}/" /tmp/changed-files; then
+              DISTROS+=("$distro")
+            fi
+          done < <(find distros -mindepth 1 -maxdepth 1 -type d -printf '%f\n')
 
           if (( ${#DISTROS[@]} == 0 )); then
             echo 'distros=[]' >> "$GITHUB_OUTPUT"
