@@ -28,6 +28,12 @@ done
     echo "Error: --distro is required" >&2
     exit 1
 }
+DISTRO_DIR="./distros/${DISTRO}"
+[ -d "$DISTRO_DIR" ] || {
+    echo "Error: distro '$DISTRO' does not exist" >&2
+    exit 1
+}
+
 IMAGE="mkvlrn/mise-devcontainer-${DISTRO}:current"
 PROJECT="$(basename "$ROOT")"
 CONTAINER="mise-devcontainer-${DISTRO}-${PROJECT}"

@@ -37,6 +37,11 @@ done
     echo "Error: --distro is required" >&2
     exit 1
 }
+DISTRO_DIR="./distros/${DISTRO}"
+[ -d "$DISTRO_DIR" ] || {
+    echo "Error: distro '$DISTRO' does not exist" >&2
+    exit 1
+}
 
 IMAGE_NAME="mkvlrn/mise-devcontainer-${DISTRO}"
 CALVER="$(date +%Y.%m.%d-%H%M%S)"
@@ -55,7 +60,7 @@ docker buildx build \
     -t "${IMAGE_NAME}:${CALVER}" \
     -t "${IMAGE_NAME}:latest" \
     -t "${IMAGE_NAME}:current" \
-    -f "./distros/${DISTRO}/Dockerfile" \
+    -f "${DISTRO_DIR}/Dockerfile" \
     .
 
 # cleanup old tags and prune
