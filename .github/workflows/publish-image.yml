@@ -65,6 +65,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.distros != '[]'
     strategy:
+      fail-fast: false
       matrix:
         distro: ${{ fromJSON(needs.changes.outputs.distros) }}
     runs-on: ubuntu-latest
