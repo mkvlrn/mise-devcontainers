@@ -46,7 +46,7 @@ devcontainer up \
 
 docker exec -it \
     --user dev \
-    -w "/home/dev" \
+    -w "/code/mise-devcontainers" \
     "$CONTAINER" \
     fish
 

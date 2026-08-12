@@ -12,6 +12,7 @@ RUN /tmp/scripts/02-packages.sh
 
 COPY --chmod=755 ./distros/archlinux/scripts/03-user.sh /tmp/scripts/
 RUN /tmp/scripts/03-user.sh
+RUN ls -ld /home/dev && id dev
 
 COPY --chmod=755 ./distros/archlinux/scripts/04-mise.sh /tmp/scripts/
 RUN --mount=type=secret,id=mise_github_token,env=MISE_GITHUB_TOKEN \
