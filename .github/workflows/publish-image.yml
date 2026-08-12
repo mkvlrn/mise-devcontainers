@@ -7,13 +7,65 @@ on:
       - closed
 
 jobs:
-  publish:
+  changes:
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
         github.event.pull_request.merged == true &&
         github.event.pull_request.user.login == 'renovate[bot]'
       )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      distros: ${{ steps.changes.outputs.distros }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - id: changes
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo 'distros=["archlinux","alpine","debian"]' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.merge_commit_sha }}" \
+            > /tmp/changed-files
+
+          if grep -q '^common/' /tmp/changed-files; then
+            echo 'distros=["archlinux","alpine","debian"]' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          DISTROS=()
+
+          grep -q '^distros/archlinux/' /tmp/changed-files &&
+            DISTROS+=("archlinux")
+
+          grep -q '^distros/alpine/' /tmp/changed-files &&
+            DISTROS+=("alpine")
+
+          grep -q '^distros/debian/' /tmp/changed-files &&
+            DISTROS+=("debian")
+
+          if (( ${#DISTROS[@]} == 0 )); then
+            echo 'distros=[]' >> "$GITHUB_OUTPUT"
+          else
+            printf -v JSON '"%s",' "${DISTROS[@]}"
+            echo "distros=[${JSON%,}]" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    needs: changes
+    if: needs.changes.outputs.distros != '[]'
+    strategy:
+      matrix:
+        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,9 +76,9 @@ jobs:
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Build and push image
+      - name: Build and push ${{ matrix.distro }}
         env:
           MISE_GITHUB_TOKEN: ${{ secrets.MISE_GITHUB_TOKEN }}
-        run: ./build.sh --push
+        run: ./build.sh --distro "${{ matrix.distro }}" --push
