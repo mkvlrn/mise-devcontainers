@@ -1,0 +1,30 @@
+{
+  "name": "mise-devcontainer-${localWorkspaceFolderBasename}",
+  "image": "",
+  "containerUser": "root",
+  "remoteUser": "dev",
+  "updateRemoteUserUID": true,
+  "workspaceFolder": "/code/${localWorkspaceFolderBasename}",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/code/${localWorkspaceFolderBasename},type=bind",
+  "mounts": [
+    // ssh agent forwarding
+    "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind",
+    // git config
+    "source=${localEnv:HOME}/.gitconfig,target=/home/dev/.gitconfig,type=bind,readonly",
+    // signing key
+    "source=${localEnv:HOME}/.ssh/id_ed25519_signing,target=/home/dev/.ssh/id_ed25519_signing,type=bind,readonly"
+  ],
+  "runArgs": ["--name=mise-devcontainer-${localWorkspaceFolderBasename}", "--privileged"],
+  "overrideCommand": false,
+  "postCreateCommand": "post-create.sh",
+  "postStartCommand": "post-start.sh",
+  "containerEnv": {
+    "DEVCONTAINER": "1",
+    "SSH_AUTH_SOCK": "/ssh-agent"
+  },
+  "remoteEnv": {
+    "DEVCONTAINER": "1",
+    "SSH_AUTH_SOCK": "/ssh-agent",
+    "MISE_GITHUB_TOKEN": "${localEnv:MISE_GITHUB_TOKEN}"
+  }
+}
