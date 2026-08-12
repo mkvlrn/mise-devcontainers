@@ -3,7 +3,15 @@ set -e
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PROJECT="$(basename "$ROOT")"
-CONTAINER="devcontainer-$PROJECT"
+CONFIG="$ROOT/.devcontainer/devcontainer.json"
+DISTRO="$(
+    sed -n 's#.*"image"[[:space:]]*:[[:space:]]*"mkvlrn/mise-devcontainer-\([^:"]*\).*#\1#p' "$CONFIG"
+)"
+[ -n "$DISTRO" ] || {
+    echo "Error: could not determine distro from devcontainer.json" >&2
+    exit 1
+}
+CONTAINER="mise-devcontainer-${DISTRO}-${PROJECT}"
 RECREATE=false
 REMOVE_EXISTING=""
 WORKSPACE_FOLDER="$(
