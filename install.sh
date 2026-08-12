@@ -75,7 +75,8 @@ curl -fsSL \
     -o "$TMP_DIR/start.sh"
 
 sed \
-    's#"image"[[:space:]]*:[[:space:]]*"[^"]*"#"image": "'"${IMAGE}:${TAG}@${DIGEST}"'"#' \
+    -e 's#"image"[[:space:]]*:[[:space:]]*"[^"]*"#"image": "'"${IMAGE}:${TAG}@${DIGEST}"'"#' \
+    -e 's#mise-devcontainer-${localWorkspaceFolderBasename}#mise-devcontainer-'"$DISTRO"'-${localWorkspaceFolderBasename}#g' \
     "$TMP_DIR/devcontainer.json" \
     >"$TMP_DIR/devcontainer.json.new"
 
