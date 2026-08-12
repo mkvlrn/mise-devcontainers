@@ -13,3 +13,9 @@ pacman -S --noconfirm \
     git \
     sudo \
     tzdata
+
+# cleanup
+pacman -Scc --noconfirm
+rm -rf \
+    /var/cache/pacman/pkg/* \
+    /home/dev/.cache/*

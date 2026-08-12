@@ -9,18 +9,15 @@ RUN /tmp/scripts/02-packages.sh
 COPY --chmod=755 ./distros/archlinux/scripts/03-user.sh /tmp/scripts/
 RUN /tmp/scripts/03-user.sh
 
-COPY --chmod=755 ./distros/archlinux/scripts/04-cleanup.sh /tmp/scripts/
-RUN /tmp/scripts/04-cleanup.sh
-
-COPY --chmod=755 ./distros/archlinux/scripts/05-mise.sh /tmp/scripts/
+COPY --chmod=755 ./distros/archlinux/scripts/04-mise.sh /tmp/scripts/
 RUN --mount=type=secret,id=mise_github_token,env=MISE_GITHUB_TOKEN \
-    /tmp/scripts/05-mise.sh
+    /tmp/scripts/04-mise.sh
 
 COPY ./common/.config/ /tmp/.config/
-COPY --chmod=755 ./common/scripts/06-config.sh /tmp/scripts/
-RUN /tmp/scripts/06-config.sh
+COPY --chmod=755 ./common/scripts/05-config.sh /tmp/scripts/
+RUN /tmp/scripts/05-config.sh
 
-RUN rm -rf /tmp/scripts
+RUN rm -rf /tmp/*
 
 COPY --chmod=755 ./common/binscripts/ /usr/local/bin/
 COPY --chmod=755 ./distros/archlinux/binscripts/ /usr/local/bin/
