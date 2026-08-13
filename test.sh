@@ -4,7 +4,7 @@ set -e
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 TEMP_DIR="$(mktemp -d)"
 
-# trap 'rm -rf "$TEMP_DIR"' EXIT
+trap 'rm -rf "$TEMP_DIR"' EXIT
 
 cd "$TEMP_DIR"
 
