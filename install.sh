@@ -62,18 +62,25 @@ curl -fsSL \
     "https://raw.githubusercontent.com/${REPO}/main/install/devcontainer.json" \
     -o "$TMP_DIR/devcontainer.json"
 curl -fsSL \
-    "https://raw.githubusercontent.com/${REPO}/main/install/start.sh" \
-    -o "$TMP_DIR/start.sh"
+    "https://raw.githubusercontent.com/${REPO}/main/install/up.sh" \
+    -o "$TMP_DIR/up.sh"
+curl -fsSL \
+    "https://raw.githubusercontent.com/${REPO}/main/install/down.sh" \
+    -o "$TMP_DIR/down.sh"
+curl -fsSL \
+    "https://raw.githubusercontent.com/${REPO}/main/install/remove.sh" \
+    -o "$TMP_DIR/remove.sh"
 sed \
     -e 's#"image"[[:space:]]*:[[:space:]]*"[^"]*"#"image": "'"${IMAGE}:${TAG}@${DIGEST}"'"#' \
     -e 's#mise-devcontainer-${localWorkspaceFolderBasename}#mise-devcontainer-'"$DISTRO"'-${localWorkspaceFolderBasename}#g' \
     "$TMP_DIR/devcontainer.json" \
     >"$TMP_DIR/devcontainer.json.new"
 mv "$TMP_DIR/devcontainer.json.new" "$TMP_DIR/devcontainer.json"
-chmod +x "$TMP_DIR/start.sh"
+chmod +x "$TMP_DIR/up.sh" "$TMP_DIR/down.sh"
 mkdir -p "$TARGET"
 cp "$TMP_DIR/devcontainer.json" "$TARGET/devcontainer.json"
-cp "$TMP_DIR/start.sh" "$TARGET/start.sh"
+cp "$TMP_DIR/up.sh" "$TARGET/up.sh"
+cp "$TMP_DIR/down.sh" "$TARGET/down.sh"
 
 echo "==> Installed .devcontainer"
 echo "==> Image: ${IMAGE}:${TAG}@${DIGEST}"
