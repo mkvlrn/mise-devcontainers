@@ -69,8 +69,7 @@ start_container() {
 
     devcontainer up \
         --workspace-folder "$ROOT" \
-        $REMOVE_EXISTING \
-        2>/dev/null
+        $REMOVE_EXISTING
 }
 
 # -----------------------------------------------------------------------------
