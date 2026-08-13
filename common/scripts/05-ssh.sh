@@ -2,6 +2,7 @@
 set -e
 
 mkdir -p /run/sshd
+ssh-keygen -A
 
 # local devcontainer login only
 passwd -d dev
