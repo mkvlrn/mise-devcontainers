@@ -14,7 +14,12 @@
     // signing key
     "source=${localEnv:HOME}/.ssh/id_ed25519_signing,target=/home/dev/.ssh/id_ed25519_signing,type=bind,readonly"
   ],
-  "runArgs": ["--name=mise-devcontainer-${localWorkspaceFolderBasename}", "--privileged"],
+  "runArgs": [
+    "--name=mise-devcontainer-${localWorkspaceFolderBasename}",
+    "--privileged",
+    "-p",
+    "127.0.0.1::22"
+  ],
   "overrideCommand": false,
   "postCreateCommand": "post-create.sh",
   "postStartCommand": "post-start.sh",
