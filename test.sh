@@ -10,4 +10,4 @@ cd "$TEMP_DIR"
 
 "$ROOT/install.sh" "$@"
 
-"$TEMP_DIR/.devcontainer/start.sh" --recreate
+"$TEMP_DIR/.devcontainer/up.sh" --recreate
