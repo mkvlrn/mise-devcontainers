@@ -6,6 +6,10 @@ DISTRO=""
 NOCACHE_FLAG=""
 CACHE_FLAGS=""
 PUSH_FLAG=""
+BUILD_DIR=".build"
+
+# cleanup
+trap 'rm -rf "$BUILD_DIR"' EXIT
 
 # parse arguments
 while [ "$#" -gt 0 ]; do
@@ -50,6 +54,18 @@ if [ -n "$PUSH_FLAG" ]; then
     CACHE_FLAGS="--cache-from type=registry,ref=${IMAGE_NAME}:buildcache --cache-to type=registry,ref=${IMAGE_NAME}:buildcache,mode=max"
 fi
 
+# prepare build files
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
+cp -a ./common/. "$BUILD_DIR/"
+if [ -d "$DISTRO_DIR" ]; then
+    cp -a "$DISTRO_DIR/." "$BUILD_DIR/"
+fi
+cat \
+    "$DISTRO_DIR/Dockerfile" \
+    ./common/Dockerfile \
+    >"$BUILD_DIR/Dockerfile"
+
 # build
 echo "==> Building image..."
 docker buildx build \
@@ -60,7 +76,7 @@ docker buildx build \
     -t "${IMAGE_NAME}:${CALVER}" \
     -t "${IMAGE_NAME}:latest" \
     -t "${IMAGE_NAME}:current" \
-    -f "${DISTRO_DIR}/Dockerfile" \
+    -f "${BUILD_DIR}/Dockerfile" \
     .
 
 # cleanup old tags and prune
