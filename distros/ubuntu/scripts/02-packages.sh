@@ -8,23 +8,16 @@ apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     docker.io \
-    docker-cli \
     docker-buildx \
-    docker-compose \
+    docker-compose-v2 \
+    fish \
     git \
-    gnupg \
     htop \
     less \
     openssh-client \
+    openssh-server \
     sudo \
-    tzdata \
-    openssh-server
-
-# add fish apt repo and install fish
-echo 'deb http://download.opensuse.org/repositories/shells:/fish:/release:/4/Debian_13/ /' | tee /etc/apt/sources.list.d/shells:fish:release:4.list
-curl -fsSL https://download.opensuse.org/repositories/shells:fish:release:4/Debian_13/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/shells_fish_release_4.gpg >/dev/null
-apt-get update
-apt-get install -y --no-install-recommends fish
+    tzdata
 
 # cleanup
 apt-get clean

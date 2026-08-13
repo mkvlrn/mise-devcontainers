@@ -1,7 +1,4 @@
 #!/bin/sh
 set -e
 
-export DEBIAN_FRONTEND=noninteractive
-
-apt-get update
-apt-get upgrade -y
+dnf upgrade -y
