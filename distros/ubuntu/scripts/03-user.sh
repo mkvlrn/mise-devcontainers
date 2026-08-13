@@ -10,10 +10,6 @@ USER_GID="$USER_UID"
 OLD_USER="$(getent passwd "$USER_UID" | cut -d: -f1)"
 userdel -r "$OLD_USER"
 
-# remove default ubuntu group
-OLD_GROUP="$(getent group "$USER_GID" | cut -d: -f1)"
-groupdel "$OLD_GROUP"
-
 # create dev user
 groupadd -g "$USER_GID" "$USERNAME"
 useradd -m -s /bin/fish -u "$USER_UID" -g "$USER_GID" "$USERNAME"
