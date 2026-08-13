@@ -27,7 +27,8 @@ Available flavors:
 ```text
 archlinux
 debian
-alpine
+fedora
+ubuntu
 ```
 
 This creates:
@@ -133,11 +134,17 @@ Debian Trixie slim: smaller and more conservative, with broad glibc compatibilit
 
 **Image:** `ghcr.io/mkvlrn/mise-devcontainer-debian`
 
-### Alpine Edge
+### Fedora
 
-Small Alpine image for those who don't mind musl compatibility considerations.
+Current Fedora (44) release with a modern userspace and RPM/DNF package ecosystem.
 
-**Image:** `ghcr.io/mkvlrn/mise-devcontainer-alpine`
+**Image:** `ghcr.io/mkvlrn/mise-devcontainer-fedora`
+
+### Ubuntu
+
+Current Ubuntu (26.04) LTS release.
+
+**Image:** `ghcr.io/mkvlrn/mise-devcontainer-ubuntu`
 
 ## mise
 
