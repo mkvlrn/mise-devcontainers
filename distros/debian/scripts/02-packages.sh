@@ -8,6 +8,7 @@ apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     docker.io \
+    docker-cli \
     docker-buildx \
     docker-compose \
     git \
