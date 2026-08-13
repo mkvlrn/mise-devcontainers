@@ -47,7 +47,7 @@ DISTRO_DIR="./distros/${DISTRO}"
     exit 1
 }
 
-IMAGE_NAME="mkvlrn/mise-devcontainer-${DISTRO}"
+IMAGE_NAME="ghcr.io/mkvlrn/mise-devcontainer-${DISTRO}"
 CALVER="$(date +%Y.%m.%d-%H%M%S)"
 
 if [ -n "$PUSH_FLAG" ]; then

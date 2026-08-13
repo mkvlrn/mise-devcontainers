@@ -26,25 +26,19 @@ The distro-specific parts are kept separate, while the rest of the environment i
 
 Rolling release and the most up-to-date system packages.
 
-**Image:** `mkvlrn/mise-devcontainer-archlinux`
-
-[Docker Hub](https://hub.docker.com/r/mkvlrn/mise-devcontainer-archlinux)
+**Image:** `ghcr.io/mkvlrn/mise-devcontainer-archlinux`
 
 ### Debian Trixie
 
 Based on Debian Trixie slim. Smaller and more conservative than Arch while retaining broad glibc compatibility.
 
-**Image:** `mkvlrn/mise-devcontainer-debian`
-
-[Docker Hub](https://hub.docker.com/r/mkvlrn/mise-devcontainer-debian)
+**Image:** `ghcr.io/mkvlrn/mise-devcontainer-debian`
 
 ### Alpine Edge
 
 Small Alpine-based image for those who prefer Alpine and don't mind musl compatibility considerations.
 
-**Image:** `mkvlrn/mise-devcontainer-alpine`
-
-[Docker Hub](https://hub.docker.com/r/mkvlrn/mise-devcontainer-alpine)
+**Image:** `ghcr.io/mkvlrn/mise-devcontainer-alpine`
 
 ## Install
 
@@ -70,7 +64,7 @@ The installer creates:
 └── start.sh
 ```
 
-It resolves the current image digest from Docker Hub and pins it in `devcontainer.json`, so the project gets the exact image that was current when it was installed.
+It resolves the current image digest from GHCR and pins it in `devcontainer.json`, so the project gets the exact image that was current when it was installed.
 
 ## Start
 
