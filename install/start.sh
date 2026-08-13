@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PROJECT="$(basename "$ROOT")"
 CONFIG="$ROOT/.devcontainer/devcontainer.json"
 DISTRO="$(
-    sed -n 's#.*"image"[[:space:]]*:[[:space:]]*"mkvlrn/mise-devcontainer-\([^:"]*\).*#\1#p' "$CONFIG"
+    sed -n 's#.*"image"[[:space:]]*:[[:space:]]*"ghcr.io/mkvlrn/mise-devcontainer-\([^:"]*\).*#\1#p' "$CONFIG"
 )"
 [ -n "$DISTRO" ] || {
     echo "Error: could not determine distro from devcontainer.json" >&2
