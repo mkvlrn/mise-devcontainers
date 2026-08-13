@@ -42,7 +42,7 @@ devcontainer up \
     $REMOVE_EXISTING \
     2>/dev/null
 
-exec docker exec -it \
+docker exec -it \
     --user dev \
     -w "$WORKSPACE_FOLDER" \
     "$CONTAINER" \
