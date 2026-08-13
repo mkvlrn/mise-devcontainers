@@ -10,13 +10,19 @@ apt-get install -y --no-install-recommends \
     docker.io \
     docker-buildx \
     docker-compose \
-    fish \
     git \
+    gnupg \
     htop \
     less \
     openssh-client \
     sudo \
     tzdata
+
+# add fish apt repo and install fish
+echo 'deb http://download.opensuse.org/repositories/shells:/fish:/release:/4/Debian_13/ /' | tee /etc/apt/sources.list.d/shells:fish:release:4.list
+curl -fsSL https://download.opensuse.org/repositories/shells:fish:release:4/Debian_13/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/shells_fish_release_4.gpg >/dev/null
+apt-get update
+apt-get install -y --no-install-recommends fish
 
 # cleanup
 apt-get clean
