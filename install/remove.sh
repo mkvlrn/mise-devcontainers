@@ -16,14 +16,15 @@ DISTRO="$(
 }
 
 CONTAINER="mise-devcontainer-${DISTRO}-${PROJECT}"
-IMAGE_ID="$(
-    docker inspect \
-        --format '{{.Image}}' \
-        "$CONTAINER" 2>/dev/null
-)"
 
 # Stop and remove the container if it exists.
 if docker container inspect "$CONTAINER" >/dev/null 2>&1; then
+    IMAGE_ID="$(
+        docker inspect \
+            --format '{{.Image}}' \
+            "$CONTAINER" 2>/dev/null
+    )"
+
     echo "🗑️ Removing dev container..."
     docker rm -f "$CONTAINER" >/dev/null
 fi
@@ -41,6 +42,7 @@ fi
 
 # Remove the image created by the devcontainer CLI.
 if [ -n "$IMAGE_ID" ]; then
+    echo "🗑️ Removing temporary image..."
     docker image rm "$IMAGE_ID" >/dev/null 2>&1 || true
 fi
 
