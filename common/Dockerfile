@@ -18,7 +18,7 @@ RUN --mount=type=secret,id=mise_github_token,env=MISE_GITHUB_TOKEN \
     /tmp/scripts/04-mise.sh
 
 COPY --chmod=755 ./.build/scripts/05-ssh.sh /tmp/scripts/
-RUN /tmp/scripts/06-ssh.sh
+RUN /tmp/scripts/05-ssh.sh
 
 RUN rm -rf /tmp/*
 
