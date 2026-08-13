@@ -12,7 +12,8 @@ pacman -S --noconfirm \
     openssh \
     git \
     sudo \
-    tzdata
+    tzdata \
+    openssh
 
 # cleanup
 pacman -Scc --noconfirm

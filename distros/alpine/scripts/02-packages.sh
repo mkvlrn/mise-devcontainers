@@ -11,4 +11,5 @@ apk add --no-cache \
     less \
     openssh-client \
     sudo \
-    tzdata
+    tzdata \
+    openssh-server

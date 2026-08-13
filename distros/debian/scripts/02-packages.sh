@@ -16,7 +16,8 @@ apt-get install -y --no-install-recommends \
     less \
     openssh-client \
     sudo \
-    tzdata
+    tzdata \
+    openssh-server
 
 # add fish apt repo and install fish
 echo 'deb http://download.opensuse.org/repositories/shells:/fish:/release:/4/Debian_13/ /' | tee /etc/apt/sources.list.d/shells:fish:release:4.list
