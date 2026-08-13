@@ -6,7 +6,7 @@ github-cli = "2.97.0"
 glab = "1.112.0"
 jq = "1.8.2"
 usage = "5.1.0"
-oh-my-posh = '30.6.4'
+oh-my-posh = '30.6.5'
 
 [settings]
 disable_backends = ["asdf"]
