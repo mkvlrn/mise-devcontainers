@@ -80,10 +80,8 @@ until ssh -o ConnectTimeout=2 "$CONTAINER" true 2>/dev/null; do
     if [ "$ATTEMPTS" -ge 5 ]; then
         echo "==> SSH diagnostics:" >&2
         docker exec "$CONTAINER" sh -c '
-        command -v sshd || true
-        test -f /run/sshd.pid && cat /run/sshd.pid || true
-        test -f /var/run/sshd.pid && cat /var/run/sshd.pid || true
-        ' >&2
+        /usr/sbin/sshd -T
+        ' >&2 || true
         error "SSH did not become ready"
     fi
 
