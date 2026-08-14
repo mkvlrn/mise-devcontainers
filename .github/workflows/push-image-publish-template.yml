@@ -80,4 +80,6 @@ jobs:
           ./test.sh --distro "${{ matrix.distro }}"
 
       - name: Publish template ${{ matrix.distro }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./create-template.sh --distro "${{ matrix.distro }}" --push
