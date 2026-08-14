@@ -61,7 +61,7 @@ jobs:
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USERNAME: ${{ github.actor }}
-        run: .github/scripts/login-ghcr.sh
+        run: .github/workflows/scripts/login-ghcr.sh
 
       - name: Build and push ${{ matrix.distro }}
         env:
