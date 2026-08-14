@@ -77,7 +77,9 @@ ATTEMPTS=0
 until ssh -o ConnectTimeout=2 "$CONTAINER" true 2>/dev/null; do
     ATTEMPTS=$((ATTEMPTS + 1))
 
-    if [ "$ATTEMPTS" -ge 30 ]; then
+    if [ "$ATTEMPTS" -ge 5 ]; then
+        echo "==> SSH diagnostics:" >&2
+        docker exec "$CONTAINER" ps aux >&2 || true
         error "SSH did not become ready"
     fi
 
