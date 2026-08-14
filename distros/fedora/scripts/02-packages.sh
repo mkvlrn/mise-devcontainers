@@ -16,7 +16,12 @@ dnf install -y \
     openssh-server \
     shadow-utils \
     sudo \
-    tzdata
+    tzdata \
+    iptables-nft \
+    runc
+
+# prioritize nft iptables for dockerd
+alternatives --set iptables /usr/bin/iptables-nft
 
 # cleanup
 dnf clean all
