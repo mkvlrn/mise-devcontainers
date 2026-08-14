@@ -2,6 +2,18 @@ name: publish image and template
 
 on:
   workflow_dispatch:
+    inputs:
+      distro:
+        description: Distro to build
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - archlinux
+          - debian
+          - fedora
+          - ubuntu
   pull_request:
     types:
       - closed
@@ -25,6 +37,8 @@ jobs:
           fetch-depth: 0
 
       - id: changes
+        env:
+          INPUT_DISTRO: ${{ inputs.distro }}
         run: .github/workflows/scripts/detect-changes.sh
 
   publish:

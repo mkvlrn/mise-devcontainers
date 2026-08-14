@@ -15,9 +15,13 @@ all_distros() {
         paste -sd, -
 }
 
-# manual runs build all distros
+# manual runs
 if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-    echo "distros=[$(all_distros)]" >>"$GITHUB_OUTPUT"
+    if [ "$INPUT_DISTRO" = "all" ]; then
+        echo "distros=[$(all_distros)]" >>"$GITHUB_OUTPUT"
+    else
+        echo "distros=[\"$INPUT_DISTRO\"]" >>"$GITHUB_OUTPUT"
+    fi
     exit 0
 fi
 
