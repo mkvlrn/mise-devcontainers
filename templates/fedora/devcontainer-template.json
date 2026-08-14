@@ -1,0 +1,7 @@
+{
+  "id": "fedora",
+  "version": "0.0.0",
+  "name": "mise-devcontainer-fedora",
+  "description": "Fedora-based development container built around mise.",
+  "documentationURL": "https://github.com/mkvlrn/mise-devcontainers"
+}

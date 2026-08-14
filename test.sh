@@ -1,56 +1,65 @@
 #!/bin/sh
 set -e
 
-ROOT="$(cd "$(dirname "$0")" && pwd)"
-DISTRO=""
-REMOVE=false
+# lib
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/lib.sh"
 
+# vars
+DISTRO=""
+BUILD_DIR=".build-template"
+TEST_DIR=".test-template"
+
+# parse arguments
 while [ "$#" -gt 0 ]; do
     case "$1" in
     --distro)
-        [ "$#" -ge 2 ] || {
-            echo "Error: --distro requires a value" >&2
-            exit 1
-        }
+        [ "$#" -ge 2 ] || error "--distro requires a value"
         DISTRO="$2"
         shift 2
         ;;
-    --remove)
-        REMOVE=true
-        shift
-        ;;
     *)
-        echo "Error: unknown option: $1" >&2
-        exit 1
+        error "unknown option: $1"
         ;;
     esac
 done
 
-[ -n "$DISTRO" ] || {
-    echo "Error: --distro is required" >&2
-    exit 1
-}
+# set more vars
+require_distro
+[ -f "$ROOT/test/$DISTRO/test.sh" ] ||
+    error "tests do not exist for distro '$DISTRO'"
+BUILD_DIR="$ROOT/$BUILD_DIR/$DISTRO"
+TEST_DIR="$ROOT/$TEST_DIR/$DISTRO"
 
-TEST_DIR="$ROOT/test/$DISTRO"
+# create template
+"$ROOT/create-template.sh" --distro "$DISTRO"
 
-if [ "$REMOVE" = true ] && [ ! -d "$TEST_DIR" ]; then
-    echo "Error: test does not exist: $DISTRO" >&2
-    exit 1
-fi
-
-if [ "$REMOVE" = true ]; then
-    if [ -x "$TEST_DIR/.devcontainer/remove.sh" ]; then
-        "$TEST_DIR/.devcontainer/remove.sh"
-    fi
-
-    rm -rf "$TEST_DIR"
-    exit 0
-fi
-
+# prepare test workspace
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
-cd "$TEST_DIR"
+cp -a "$BUILD_DIR/.devcontainer" "$TEST_DIR/"
+cp -a "$ROOT/test/_common" "$TEST_DIR/"
+cp "$ROOT/test/$DISTRO/test.sh" "$TEST_DIR/test.sh"
+chmod +x "$TEST_DIR/test.sh"
 
-"$ROOT/install.sh" --distro "$DISTRO"
-
+# start devcontainer
 "$TEST_DIR/.devcontainer/up.sh" --recreate
+
+# determine ssh target
+PROJECT="$(basename "$TEST_DIR")"
+CONTAINER="mise-devcontainer-${DISTRO}-${PROJECT}"
+
+# run tests inside the finished environment
+TEST_RESULT=0
+ssh "$CONTAINER" \
+    "cd /code/$PROJECT && ./test.sh" ||
+    TEST_RESULT=$?
+
+# remove devcontainer and associated state
+"$TEST_DIR/.devcontainer/remove.sh"
+
+# report results
+if [ "$TEST_RESULT" -ne 0 ]; then
+    error "template tests failed"
+fi
+echo "==> Template tests passed!"

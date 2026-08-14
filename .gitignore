@@ -1,2 +1,4 @@
 .build/
-test/
+.build-template/
+.test-template/
+.publish-template/

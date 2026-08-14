@@ -1,0 +1,7 @@
+{
+  "id": "ubuntu",
+  "version": "0.0.0",
+  "name": "mise-devcontainer-ubuntu",
+  "description": "Ubuntu-based development container built around mise.",
+  "documentationURL": "https://github.com/mkvlrn/mise-devcontainers"
+}

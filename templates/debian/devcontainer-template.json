@@ -1,0 +1,7 @@
+{
+  "id": "debian",
+  "version": "0.0.0",
+  "name": "mise-devcontainer-debian",
+  "description": "Debian-based development container built around mise.",
+  "documentationURL": "https://github.com/mkvlrn/mise-devcontainers"
+}

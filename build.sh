@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
 
+# lib
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/lib.sh"
+
 # vars
 DISTRO=""
 NOCACHE_FLAG=""
@@ -8,17 +12,11 @@ CACHE_FLAGS=""
 PUSH_FLAG=""
 BUILD_DIR=".build"
 
-# cleanup
-trap 'rm -rf "$BUILD_DIR"' EXIT
-
 # parse arguments
 while [ "$#" -gt 0 ]; do
     case "$1" in
     --distro)
-        [ "$#" -ge 2 ] || {
-            echo "Error: --distro requires a value" >&2
-            exit 1
-        }
+        [ "$#" -ge 2 ] || error "--distro requires a value"
         DISTRO="$2"
         shift 2
         ;;
@@ -31,40 +29,32 @@ while [ "$#" -gt 0 ]; do
         shift
         ;;
     *)
-        echo "Error: unknown option: $1" >&2
-        exit 1
+        error "unknown option: $1"
         ;;
     esac
 done
 
-[ -n "$DISTRO" ] || {
-    echo "Error: --distro is required" >&2
-    exit 1
-}
-DISTRO_DIR="./distros/${DISTRO}"
-[ -d "$DISTRO_DIR" ] || {
-    echo "Error: distro '$DISTRO' does not exist" >&2
-    exit 1
-}
-
-IMAGE_NAME="ghcr.io/mkvlrn/mise-devcontainer-${DISTRO}"
+# set more vars
+require_distro
+DISTRO_DIR="$ROOT/src/$DISTRO"
+require_distro_dir "$DISTRO_DIR"
+set_image_vars
+IMAGE_NAME="$IMAGE_REF"
 CALVER="$(date +%Y.%m.%d-%H%M%S)"
-
+OUTPUT_DIR="$ROOT/$BUILD_DIR/$DISTRO"
 if [ -n "$PUSH_FLAG" ]; then
     CACHE_FLAGS="--cache-from type=registry,ref=${IMAGE_NAME}:buildcache --cache-to type=registry,ref=${IMAGE_NAME}:buildcache,mode=max"
 fi
 
 # prepare build files
-rm -rf "$BUILD_DIR"
-mkdir -p "$BUILD_DIR"
-cp -a ./common/. "$BUILD_DIR/"
-if [ -d "$DISTRO_DIR" ]; then
-    cp -a "$DISTRO_DIR/." "$BUILD_DIR/"
-fi
+prepare_overlay \
+    "$ROOT/src/_common" \
+    "$DISTRO_DIR" \
+    "$OUTPUT_DIR"
 cat \
     "$DISTRO_DIR/Dockerfile" \
-    ./common/Dockerfile \
-    >"$BUILD_DIR/Dockerfile"
+    "$ROOT/src/_common/Dockerfile" \
+    >"$OUTPUT_DIR/Dockerfile"
 
 # build
 echo "==> Building image..."
@@ -76,8 +66,8 @@ docker buildx build \
     -t "${IMAGE_NAME}:${CALVER}" \
     -t "${IMAGE_NAME}:latest" \
     -t "${IMAGE_NAME}:current" \
-    -f "${BUILD_DIR}/Dockerfile" \
-    .
+    -f "${OUTPUT_DIR}/Dockerfile" \
+    "$ROOT"
 
 # cleanup old tags and prune
 docker images "$IMAGE_NAME" --format '{{.Repository}}:{{.Tag}}' |
