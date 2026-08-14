@@ -75,7 +75,9 @@ jobs:
         run: ./create-template.sh --distro "${{ matrix.distro }}"
 
       - name: Test ${{ matrix.distro }}
-        run: ./test.sh --distro "${{ matrix.distro }}"
+        run: |
+          eval "$(ssh-agent -s)"
+          ./test.sh --distro "${{ matrix.distro }}"
 
       - name: Publish template ${{ matrix.distro }}
         run: ./create-template.sh --distro "${{ matrix.distro }}" --push
