@@ -1,5 +1,3 @@
-LABEL org.opencontainers.image.source="https://github.com/mkvlrn/mise-devcontainers"
-
 COPY ./.build/.config/ /tmp/.config/
 COPY --chmod=755 ./.build/scripts/00-config.sh /tmp/scripts/
 RUN /tmp/scripts/00-config.sh
