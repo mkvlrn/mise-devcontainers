@@ -67,7 +67,7 @@ docker buildx build \
     -t "${IMAGE_NAME}:latest" \
     -t "${IMAGE_NAME}:current" \
     -f "${OUTPUT_DIR}/Dockerfile" \
-    "$ROOT"
+    "$OUTPUT_DIR"
 
 # cleanup old tags and prune
 docker images "$IMAGE_NAME" --format '{{.Repository}}:{{.Tag}}' |
