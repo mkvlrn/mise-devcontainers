@@ -41,8 +41,9 @@ jobs:
           INPUT_DISTRO: ${{ inputs.distro }}
         run: .github/workflows/scripts/detect-changes.sh
 
-  publish:
-    needs: changes
+  push-image:
+    needs:
+      - changes
     if: needs.changes.outputs.distros != '[]'
     strategy:
       fail-fast: false
@@ -68,6 +69,22 @@ jobs:
           MISE_GITHUB_TOKEN: ${{ secrets.MISE_GITHUB_TOKEN }}
         run: ./build.sh --distro "${{ matrix.distro }}" --push
 
+  publish-template:
+    needs:
+      - changes
+      - push-image
+    if: needs.changes.outputs.distros != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
       - name: Install Dev Container CLI
         run: npm install -g @devcontainers/cli
 
@@ -75,11 +92,9 @@ jobs:
         run: ./create-template.sh --distro "${{ matrix.distro }}"
 
       - name: Test ${{ matrix.distro }}
-        run: |
-          eval "$(ssh-agent -s)"
-          ./test.sh --distro "${{ matrix.distro }}"
+        run: ./test.sh --distro "${{ matrix.distro }}"
 
       - name: Publish template ${{ matrix.distro }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEVCONTAINERS_OCI_AUTH: ghcr.io|${{ github.actor }}|${{ secrets.GITHUB_TOKEN }}
         run: ./create-template.sh --distro "${{ matrix.distro }}" --push
