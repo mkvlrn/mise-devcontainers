@@ -9,6 +9,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DISTRO=""
 BUILD_DIR=".build-template"
 TEST_DIR=".test-template"
+CREATED_GITCONFIG=false
+CREATED_SIGNING_KEY=false
+STARTED_SSH_AGENT=false
 
 # parse arguments
 while [ "$#" -gt 0 ]; do
@@ -30,6 +33,28 @@ require_distro
     error "tests do not exist for distro '$DISTRO'"
 BUILD_DIR="$ROOT/$BUILD_DIR/$DISTRO"
 TEST_DIR="$ROOT/$TEST_DIR/$DISTRO"
+
+# prepare host environment
+mkdir -p "$HOME/.ssh"
+if [ ! -e "$HOME/.gitconfig" ]; then
+    touch "$HOME/.gitconfig"
+    CREATED_GITCONFIG=true
+fi
+if [ ! -e "$HOME/.ssh/id_ed25519_signing" ]; then
+    touch "$HOME/.ssh/id_ed25519_signing"
+    CREATED_SIGNING_KEY=true
+fi
+if [ -z "${SSH_AUTH_SOCK:-}" ]; then
+    eval "$(ssh-agent -s)" >/dev/null
+    STARTED_SSH_AGENT=true
+fi
+
+# host environment cleanup
+trap '
+    [ "$STARTED_SSH_AGENT" = true ] && ssh-agent -k >/dev/null
+    [ "$CREATED_SIGNING_KEY" = true ] && rm -f "$HOME/.ssh/id_ed25519_signing"
+    [ "$CREATED_GITCONFIG" = true ] && rm -f "$HOME/.gitconfig"
+' EXIT
 
 # prepare test workspace
 rm -rf "$TEST_DIR"
