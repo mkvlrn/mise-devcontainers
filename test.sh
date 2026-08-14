@@ -80,8 +80,17 @@ until ssh -o ConnectTimeout=2 "$CONTAINER" true 2>/dev/null; do
     if [ "$ATTEMPTS" -ge 5 ]; then
         echo "==> SSH diagnostics:" >&2
         docker exec "$CONTAINER" sh -c '
-        /usr/sbin/sshd -T
-        ' >&2 || true
+        PID="$(cat /var/run/sshd.pid 2>/dev/null || true)"
+        echo "sshd pid: $PID"
+
+        if [ -n "$PID" ] && [ -d "/proc/$PID" ]; then
+            echo "sshd process exists"
+            tr "\0" " " <"/proc/$PID/cmdline"
+            echo
+        else
+            echo "sshd process is dead"
+        fi
+        ' >&2
         error "SSH did not become ready"
     fi
 
