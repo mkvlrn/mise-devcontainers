@@ -1,4 +1,4 @@
-name: publish image and template
+name: push-image-publish-template
 
 on:
   workflow_dispatch:

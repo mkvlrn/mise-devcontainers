@@ -71,6 +71,19 @@ chmod +x "$TEST_DIR/test.sh"
 PROJECT="$(basename "$TEST_DIR")"
 CONTAINER="mise-devcontainer-${DISTRO}-${PROJECT}"
 
+# wait for ssh
+echo "==> Waiting for SSH..."
+ATTEMPTS=0
+until ssh -o ConnectTimeout=2 "$CONTAINER" true 2>/dev/null; do
+    ATTEMPTS=$((ATTEMPTS + 1))
+
+    if [ "$ATTEMPTS" -ge 30 ]; then
+        error "SSH did not become ready"
+    fi
+
+    sleep 1
+done
+
 # run tests inside the finished environment
 TEST_RESULT=0
 ssh "$CONTAINER" \
