@@ -100,7 +100,7 @@ remove_ssh_entry() {
     awk -v host="$CONTAINER" '
         $1 == "Host" && $2 == host { skip = 1; next }
         skip && $1 == "Host" { skip = 0 }
-        !skip { print }
+        !skip && NF > 0 { print }
     ' "$SSH_CONFIG" >"${SSH_CONFIG}.tmp"
 
     mv "${SSH_CONFIG}.tmp" "$SSH_CONFIG"
@@ -110,15 +110,16 @@ remove_ssh_entry() {
 update_ssh_entry() {
     remove_ssh_entry
 
-    cat >>"$SSH_CONFIG" <<EOF
+    sed -i '/^[[:space:]]*$/d' "$SSH_CONFIG"
 
-Host $CONTAINER
-    HostName 127.0.0.1
-    Port $SSH_PORT
-    User dev
-    StrictHostKeyChecking no
-    UserKnownHostsFile /dev/null
-EOF
+    printf '%s\n' \
+        "Host $CONTAINER" \
+        "    HostName 127.0.0.1" \
+        "    Port $SSH_PORT" \
+        "    User dev" \
+        "    StrictHostKeyChecking no" \
+        "    UserKnownHostsFile /dev/null" \
+        >"$SSH_CONFIG"
 }
 
 # -----------------------------------------------------------------------------

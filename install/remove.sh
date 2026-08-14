@@ -34,7 +34,7 @@ if [ -f "$SSH_CONFIG" ]; then
     awk -v host="$CONTAINER" '
         $1 == "Host" && $2 == host { skip = 1; next }
         skip && $1 == "Host" { skip = 0 }
-        !skip { print }
+        !skip && NF > 0 { print }
     ' "$SSH_CONFIG" >"${SSH_CONFIG}.tmp"
 
     mv "${SSH_CONFIG}.tmp" "$SSH_CONFIG"
