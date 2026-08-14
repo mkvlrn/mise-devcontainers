@@ -39,43 +39,46 @@ TAG="current"
 OUTPUT_DIR="$ROOT/$BUILD_DIR/$DISTRO"
 PUBLISH_DIR="$ROOT/$PUBLISH_DIR"
 
-# prepare template files
-prepare_overlay \
-    "$ROOT/templates/_common" \
-    "$DISTRO_DIR" \
-    "$OUTPUT_DIR"
+# create template unless an existing one is being pushed
+if [ "$PUSH" != true ] || [ ! -d "$OUTPUT_DIR" ]; then
+    # prepare template files
+    prepare_overlay \
+        "$ROOT/templates/_common" \
+        "$DISTRO_DIR" \
+        "$OUTPUT_DIR"
 
-# resolve image digest
-echo "==> Resolving ${IMAGE_REF}:${TAG}..."
-TOKEN="$(
-    curl -fsSL \
-        "https://ghcr.io/token?service=ghcr.io&scope=repository:${IMAGE}:pull" |
-        sed -n 's/.*"token":"\([^"]*\)".*/\1/p'
-)"
-[ -n "$TOKEN" ] || error "failed to authenticate with GHCR"
+    # resolve image digest
+    echo "==> Resolving ${IMAGE_REF}:${TAG}..."
+    TOKEN="$(
+        curl -fsSL \
+            "https://ghcr.io/token?service=ghcr.io&scope=repository:${IMAGE}:pull" |
+            sed -n 's/.*"token":"\([^"]*\)".*/\1/p'
+    )"
+    [ -n "$TOKEN" ] || error "failed to authenticate with GHCR"
 
-DIGEST="$(
-    curl -fsSI \
-        -H "Authorization: Bearer $TOKEN" \
-        -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
-        "https://ghcr.io/v2/${IMAGE}/manifests/${TAG}" |
-        awk -F ': ' 'tolower($1) == "docker-content-digest" { gsub("\r", "", $2); print $2 }'
-)"
-[ -n "$DIGEST" ] || error "could not resolve ${IMAGE_REF}:${TAG}"
+    DIGEST="$(
+        curl -fsSI \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
+            "https://ghcr.io/v2/${IMAGE}/manifests/${TAG}" |
+            awk -F ': ' 'tolower($1) == "docker-content-digest" { gsub("\r", "", $2); print $2 }'
+    )"
+    [ -n "$DIGEST" ] || error "could not resolve ${IMAGE_REF}:${TAG}"
 
-# configure template
-sed \
-    -e 's#"image"[[:space:]]*:[[:space:]]*"[^"]*"#"image": "'"${IMAGE_REF}:${TAG}@${DIGEST}"'"#' \
-    -e 's#mise-devcontainer-${localWorkspaceFolderBasename}#mise-devcontainer-'"$DISTRO"'-${localWorkspaceFolderBasename}#g' \
-    "$OUTPUT_DIR/.devcontainer/devcontainer.json" \
-    >"$OUTPUT_DIR/.devcontainer/devcontainer.json.new"
-mv "$OUTPUT_DIR/.devcontainer/devcontainer.json.new" "$OUTPUT_DIR/.devcontainer/devcontainer.json"
+    # configure template
+    sed \
+        -e 's#"image"[[:space:]]*:[[:space:]]*"[^"]*"#"image": "'"${IMAGE_REF}:${TAG}@${DIGEST}"'"#' \
+        -e 's#mise-devcontainer-${localWorkspaceFolderBasename}#mise-devcontainer-'"$DISTRO"'-${localWorkspaceFolderBasename}#g' \
+        "$OUTPUT_DIR/.devcontainer/devcontainer.json" \
+        >"$OUTPUT_DIR/.devcontainer/devcontainer.json.new"
+    mv "$OUTPUT_DIR/.devcontainer/devcontainer.json.new" "$OUTPUT_DIR/.devcontainer/devcontainer.json"
 
-sed \
-    -e 's#"version"[[:space:]]*:[[:space:]]*"[^"]*"#"version": "'"$TEMPLATE_VERSION"'"#' \
-    "$OUTPUT_DIR/devcontainer-template.json" \
-    >"$OUTPUT_DIR/devcontainer-template.json.new"
-mv "$OUTPUT_DIR/devcontainer-template.json.new" "$OUTPUT_DIR/devcontainer-template.json"
+    sed \
+        -e 's#"version"[[:space:]]*:[[:space:]]*"[^"]*"#"version": "'"$TEMPLATE_VERSION"'"#' \
+        "$OUTPUT_DIR/devcontainer-template.json" \
+        >"$OUTPUT_DIR/devcontainer-template.json.new"
+    mv "$OUTPUT_DIR/devcontainer-template.json.new" "$OUTPUT_DIR/devcontainer-template.json"
+fi
 
 # publish template
 if [ "$PUSH" = true ]; then
@@ -94,4 +97,5 @@ if [ "$PUSH" = true ]; then
     rm -rf "$PUBLISH_DIR"
     trap - EXIT
 fi
+
 echo "==> Done!"

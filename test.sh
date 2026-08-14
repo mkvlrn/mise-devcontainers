@@ -31,9 +31,6 @@ require_distro
 BUILD_DIR="$ROOT/$BUILD_DIR/$DISTRO"
 TEST_DIR="$ROOT/$TEST_DIR/$DISTRO"
 
-# create template
-"$ROOT/create-template.sh" --distro "$DISTRO"
-
 # prepare test workspace
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
