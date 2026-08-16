@@ -14,13 +14,12 @@ on:
           - debian
           - fedora
           - ubuntu
-
   pull_request:
     types:
       - closed
 
 jobs:
-  changes:
+  detect-changes:
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
@@ -37,18 +36,20 @@ jobs:
     env:
       GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GHCR_USERNAME: ${{ github.actor }}
-
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: setup checkout action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - name: setup bun action
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
 
-      - name: Install dependencies
+      - name: install dependencies
         run: bun install --frozen-lockfile
 
-      - id: changes
+      - name: detect changes
+        id: changes
         env:
           INPUT_DISTRO: ${{ inputs.distro }}
         run: |
@@ -56,68 +57,71 @@ jobs:
           echo '--- GITHUB_OUTPUT ---'
           cat "$GITHUB_OUTPUT"
 
-  build:
-    needs: changes
-    if: needs.changes.outputs.distros != '[]'
+  build-image:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.distros != '[]'
     strategy:
       fail-fast: false
       matrix:
-        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+        distro: ${{ fromJSON(needs.detect-changes.outputs.distros) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: setup checkout action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - name: setup bun action
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
 
-      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+      - name: setup buildx action
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
-      - name: Install dependencies
+      - name: install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Login to GHCR
+      - name: login to ghcr
         run: bun main.ts login-ghcr
 
-      - name: Build candidate
+      - name: build candidate image
         env:
           MISE_GITHUB_TOKEN: ${{ secrets.MISE_GITHUB_TOKEN }}
         run: |
           bun main.ts build-image \
             --distro "${{ matrix.distro }}" \
-            --candidateTag "${{ needs.changes.outputs.candidate-tag }}"
+            --candidateTag "${{ needs.detect-changes.outputs.candidate-tag }}"
 
   create-template:
     needs:
-      - changes
-      - build
-    if: needs.changes.outputs.distros != '[]'
+      - detect-changes
+      - build-image
+    if: needs.detect-changes.outputs.distros != '[]'
     strategy:
       fail-fast: false
       matrix:
-        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+        distro: ${{ fromJSON(needs.detect-changes.outputs.distros) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: setup checkout action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - name: setup bun action
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
 
-      - name: Install dependencies
+      - name: install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Create template
+      - name: create template
         run: |
           bun main.ts create-template \
             --distro "${{ matrix.distro }}" \
-            --candidateTag "${{ needs.changes.outputs.candidate-tag }}" \
-            --imageVersion "${{ needs.changes.outputs.image-version }}"
+            --candidateTag "${{ needs.detect-changes.outputs.candidate-tag }}" \
+            --imageVersion "${{ needs.detect-changes.outputs.image-version }}"
 
-      - name: Upload template
+      - name: upload template artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: template-${{ matrix.distro }}
@@ -126,116 +130,121 @@ jobs:
           include-hidden-files: true
           retention-days: 1
 
-  test:
+  test-template:
     needs:
-      - changes
+      - detect-changes
       - create-template
-    if: needs.changes.outputs.distros != '[]'
+    if: needs.detect-changes.outputs.distros != '[]'
     strategy:
       fail-fast: false
       matrix:
-        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+        distro: ${{ fromJSON(needs.detect-changes.outputs.distros) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: read
-
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: setup checkout action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - name: setup bun action
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
 
-      - name: Install dependencies
+      - name: install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Install Dev Container CLI
+      - name: install dev container cli
         run: npm install -g @devcontainers/cli
 
-      - name: Login to GHCR
+      - name: login to ghcr
         run: bun main.ts login-ghcr
 
-      - name: Download template
+      - name: download template artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: template-${{ matrix.distro }}
           path: .tmp/.publish-template-${{ matrix.distro }}
 
-      - name: Test template
+      - name: test template
         run: bun main.ts test-template --distro "${{ matrix.distro }}"
 
-  push:
+  promote-image:
     needs:
-      - changes
-      - test
-    if: needs.changes.outputs.distros != '[]'
+      - detect-changes
+      - test-template
+    if: needs.detect-changes.outputs.distros != '[]'
     strategy:
       fail-fast: false
       matrix:
-        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+        distro: ${{ fromJSON(needs.detect-changes.outputs.distros) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: setup checkout action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - name: setup bun action
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
 
-      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+      - name: setup buildx action
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
-      - name: Install dependencies
+      - name: install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Login to GHCR
+      - name: login to ghcr
         run: bun main.ts login-ghcr
 
-      - name: Promote image
+      - name: promote image
         run: |
           bun main.ts promote-image \
             --distro "${{ matrix.distro }}" \
-            --candidateTag "${{ needs.changes.outputs.candidate-tag }}" \
-            --imageVersion "${{ needs.changes.outputs.image-version }}"
+            --candidateTag "${{ needs.detect-changes.outputs.candidate-tag }}" \
+            --imageVersion "${{ needs.detect-changes.outputs.image-version }}"
 
-  publish:
+  publish-template:
     needs:
-      - changes
-      - push
-    if: needs.changes.outputs.distros != '[]'
+      - detect-changes
+      - promote-image
+    if: needs.detect-changes.outputs.distros != '[]'
     strategy:
       fail-fast: false
       matrix:
-        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+        distro: ${{ fromJSON(needs.detect-changes.outputs.distros) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: setup checkout action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - name: setup bun action
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
 
-      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+      - name: setup buildx action
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
-      - name: Install dependencies
+      - name: install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Install Dev Container CLI
+      - name: install dev container cli
         run: npm install -g @devcontainers/cli
 
-      - name: Login to GHCR
+      - name: login to ghcr
         run: bun main.ts login-ghcr
 
-      - name: Download tested template
+      - name: download tested template artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: template-${{ matrix.distro }}
           path: .tmp/.publish-template-${{ matrix.distro }}
 
-      - name: Publish template
+      - name: publish template
         run: |
           bun main.ts publish-template \
             --distro "${{ matrix.distro }}" \
-            --candidateTag "${{ needs.changes.outputs.candidate-tag }}" \
-            --imageVersion "${{ needs.changes.outputs.image-version }}"
+            --candidateTag "${{ needs.detect-changes.outputs.candidate-tag }}" \
+            --imageVersion "${{ needs.detect-changes.outputs.image-version }}"
