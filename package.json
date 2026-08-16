@@ -1,6 +1,6 @@
 {
   "name": "mise-devcontainers",
-  "description": "A template for esm Bun projects using typescript",
+  "description": "Multi-distro development containers built around mise",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -8,13 +8,13 @@
   "author": "Mike Valeriano <mkvlrn@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git@github.com:mkvlrn/template-bun"
+    "url": "git@github.com:mkvlrn/mise-devcontainers"
   },
   "keywords": [
-    "bun",
-    "typescript",
-    "esm",
-    "template"
+    "devcontainer",
+    "mise",
+    "docker",
+    "development-environment"
   ],
   "devEngines": {
     "runtime": {
