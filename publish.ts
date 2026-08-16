@@ -22,7 +22,7 @@ const candidateRef = `${imageRef}:${candidateTag}`;
 const currentRef = `${imageRef}:current`;
 const templateOutputDir = values.publishTemplateDir(distro);
 const containerConfigPath = path.join(templateOutputDir, ".devcontainer", "devcontainer.json");
-const publishDir = path.join(values.root, ".publish-template");
+const publishDir = path.join(values.root, ".publish-collection");
 const publishTemplateDir = path.join(publishDir, distro);
 
 // checks
@@ -44,6 +44,7 @@ async function getDigest(ref: string): Promise<string> {
 }
 
 console.log("==> Resolving image digests...");
+
 const candidateDigest = await getDigest(candidateRef);
 const currentDigest = await getDigest(currentRef);
 
@@ -54,6 +55,7 @@ if (candidateDigest !== currentDigest) {
 // pin image digest
 const containerConfig = await bun.file(containerConfigPath).json();
 containerConfig.image = `${currentRef}@${currentDigest}`;
+
 await bun.write(containerConfigPath, `${JSON.stringify(containerConfig, null, 2)}\n`);
 
 // prepare publication
@@ -64,6 +66,7 @@ await fs.cp(templateOutputDir, publishTemplateDir, { recursive: true, force: tru
 // publish template
 try {
   console.log("==> Publishing template...");
+
   await $`devcontainer templates publish \
     --registry ghcr.io \
     --namespace mkvlrn/mise-devcontainers \
