@@ -122,8 +122,9 @@ async function runTests() {
     }
 
     if (attempt === attempts - 1) {
-      console.error("==> Container logs:");
-      await $`docker logs ${container}`.nothrow();
+      console.error("==> SSH server logs:");
+      await $`docker exec ${container} sh -c \
+  'journalctl -u sshd --no-pager -n 50 2>/dev/null || tail -n 50 /var/log/secure 2>/dev/null || true'`.nothrow();
 
       console.error("==> SSH diagnostics:");
       await $`ssh \
