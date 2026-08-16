@@ -79,7 +79,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Login to GHCR
-        run: bun login-ghcr.ts
+        run: bun main.ts login-ghcr
 
       - name: Build candidate
         env:
@@ -152,7 +152,7 @@ jobs:
         run: npm install -g @devcontainers/cli
 
       - name: Login to GHCR
-        run: bun login-ghcr.ts
+        run: bun main.ts login-ghcr
 
       - name: Download template
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -188,7 +188,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Login to GHCR
-        run: bun login-ghcr.ts
+        run: bun main.ts login-ghcr
 
       - name: Promote image
         run: |
@@ -225,7 +225,7 @@ jobs:
         run: npm install -g @devcontainers/cli
 
       - name: Login to GHCR
-        run: bun login-ghcr.ts
+        run: bun main.ts login-ghcr
 
       - name: Download tested template
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
