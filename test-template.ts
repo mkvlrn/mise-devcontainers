@@ -22,16 +22,12 @@ const testSuitesDir = values.testSuitesDir(distro);
 const testExecutionDir = values.testExecutionDir(distro);
 const testSuiteFile = path.join(testSuitesDir, "test.ts");
 
-if (!(await bun.file(testSuiteFile).exists())) {
-  console.error(`no test suite for ${distro} exists`);
-  exit(1);
-}
-
 // checks
 if (!(await dirExists(templateOutputDir))) {
   console.error(`template for ${distro} was not created`);
   exit(1);
 }
+
 if (!(await bun.file(testSuiteFile).exists())) {
   console.error(`no test suite for ${distro} exists`);
   exit(1);
@@ -40,6 +36,7 @@ if (!(await bun.file(testSuiteFile).exists())) {
 // setup host environment
 async function setupHost(): Promise<void> {
   await fs.mkdir(path.join(os.homedir(), ".ssh"), { recursive: true });
+
   const gitConfig = path.join(os.homedir(), ".gitconfig");
   const signingKey = path.join(os.homedir(), ".ssh", "id_ed25519_signing");
 
@@ -55,13 +52,10 @@ async function setupHost(): Promise<void> {
   }
 
   if (!process.env["SSH_AUTH_SOCK"]) {
-    const sshAgentOutput = await $`ssh-agent -s`.text();
+    const output = await $`ssh-agent -s`.text();
 
-    const authSock = sshAgentOutput.match(/SSH_AUTH_SOCK=([^;]+)/)?.[1];
-    const agentPid = sshAgentOutput.match(/SSH_AGENT_PID=([0-9]+)/)?.[1];
-    cleanup.defer(async () => {
-      await $`kill ${agentPid}`.quiet();
-    });
+    const authSock = output.match(/SSH_AUTH_SOCK=([^;]+)/)?.[1];
+    const agentPid = output.match(/SSH_AGENT_PID=([0-9]+)/)?.[1];
 
     if (!(authSock && agentPid)) {
       throw new Error("Could not start ssh-agent");
@@ -69,15 +63,20 @@ async function setupHost(): Promise<void> {
 
     process.env["SSH_AUTH_SOCK"] = authSock;
     process.env["SSH_AGENT_PID"] = agentPid;
+
+    cleanup.defer(async () => {
+      await $`kill ${agentPid}`.quiet();
+    });
   }
 
   await $`ssh-add ${signingKey}`;
 }
 
 // setup test execution
-async function setupTestExecution() {
+async function setupTestExecution(): Promise<void> {
   await fs.rm(testExecutionDir, { recursive: true, force: true });
   await fs.mkdir(testExecutionDir, { recursive: true });
+
   await fs.cp(
     path.join(templateOutputDir, ".devcontainer"),
     path.join(testExecutionDir, ".devcontainer"),
@@ -86,22 +85,22 @@ async function setupTestExecution() {
       force: true,
     },
   );
+
   for (const script of ["up.sh", "down.sh", "remove.sh"]) {
     await fs.chmod(path.join(testExecutionDir, ".devcontainer", script), 0o755);
   }
 }
 
-// do the deed
-async function runTests() {
+// run tests
+async function runTests(): Promise<void> {
   const project = path.basename(testExecutionDir);
   const container = `mise-devcontainer-${distro}-${project}`;
 
   cleanup.defer(async () => {
     await $`${testExecutionDir}/.devcontainer/remove.sh`;
   });
+
   await $`${testExecutionDir}/.devcontainer/up.sh`;
-  await $`docker exec ${container} sh -c 'cat /home/dev/.ssh/authorized_keys 2>/dev/null || echo "NO AUTHORIZED KEYS"'`;
-  await $`docker exec ${container} sh -c 'SSH_AUTH_SOCK=/ssh-agent ssh-add -L || true'`;
 
   console.log("==> Waiting for SSH...");
 
@@ -109,11 +108,11 @@ async function runTests() {
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const result = await $`ssh \
-    -o BatchMode=yes \
-    -o ConnectionAttempts=1 \
-    -o ConnectTimeout=2 \
-    ${container} \
-    true`
+      -o BatchMode=yes \
+      -o ConnectionAttempts=1 \
+      -o ConnectTimeout=2 \
+      ${container} \
+      true`
       .quiet()
       .nothrow();
 
@@ -122,27 +121,34 @@ async function runTests() {
     }
 
     if (attempt === attempts - 1) {
-      console.error("==> Restarting sshd in debug mode:");
+      console.error("==> Restarting sshd in debug mode...");
 
       await $`docker exec ${container} sh -c 'kill "$(cat /var/run/sshd.pid)"'`;
 
-      const sshdDebug = $`docker exec ${container} /usr/sbin/sshd -D -ddd -e`.nothrow();
+      const sshdDebug = Bun.spawn(
+        ["docker", "exec", container, "/usr/sbin/sshd", "-D", "-ddd", "-e"],
+        {
+          stdout: "pipe",
+          stderr: "pipe",
+        },
+      );
 
       await bun.sleep(500);
 
       console.error("==> SSH diagnostics:");
+
       await $`ssh \
-  -vvv \
-  -o BatchMode=yes \
-  -o ConnectionAttempts=1 \
-  -o ConnectTimeout=2 \
-  ${container} \
-  true`.nothrow();
+        -vvv \
+        -o BatchMode=yes \
+        -o ConnectionAttempts=1 \
+        -o ConnectTimeout=2 \
+        ${container} \
+        true`.nothrow();
 
-      await $`docker exec ${container} pkill sshd`.nothrow();
+      sshdDebug.kill();
 
-      const debugResult = await sshdDebug;
-      console.error(debugResult.stderr.toString());
+      const debugOutput = await new Response(sshdDebug.stderr).text();
+      console.error(debugOutput);
 
       throw new Error("SSH did not become ready");
     }
