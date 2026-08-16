@@ -101,6 +101,7 @@ async function runTests() {
   });
   await $`${testExecutionDir}/.devcontainer/up.sh`;
   await $`docker exec ${container} sh -c 'cat /home/dev/.ssh/authorized_keys 2>/dev/null || echo "NO AUTHORIZED KEYS"'`;
+  await $`docker exec ${container} sh -c 'SSH_AUTH_SOCK=/ssh-agent ssh-add -L || true'`;
 
   console.log("==> Waiting for SSH...");
 
