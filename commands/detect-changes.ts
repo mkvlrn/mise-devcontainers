@@ -5,10 +5,6 @@ import type { z } from "zod";
 import { parseEnv } from "./misc/lib";
 import { distroList, type envSchema } from "./misc/schemas";
 
-function joinDistros(distros: string[]) {
-  return distros.map((d) => `"${d}"`).join(",");
-}
-
 export async function run(_: string[]): ResultAsync<true, Error> {
   const parsedEnv = parseEnv();
   if (parsedEnv.isError) {
@@ -64,7 +60,7 @@ function processWorkflowDispatch(
   try {
     if (env.GITHUB_EVENT_NAME === "workflow_dispatch") {
       if (env.INPUT_DISTRO === "all") {
-        outputFile.write(`distros=[${joinDistros(distroList)}]\n`);
+        outputFile.write(`distros=[${JSON.stringify(distroList)}]\n`);
       } else {
         outputFile.write(`distros=["${env.INPUT_DISTRO}"]\n`);
       }
@@ -91,7 +87,7 @@ async function processChanges(
     // biome-ignore lint/performance/useTopLevelRegex: only called once
     const changesInCommon = /^distros\/_common/;
     if (changesInCommon.test(changedFiles)) {
-      outputFile.write(`distros=[${joinDistros(distroList)}]`);
+      outputFile.write(`distros=[${JSON.stringify(distroList)}]`);
 
       return okResult(true);
     }
@@ -102,7 +98,7 @@ async function processChanges(
         changedDistros.push(distro);
       }
     }
-    outputFile.write(`distros=[${joinDistros(changedDistros)}]`);
+    outputFile.write(`distros=[${JSON.stringify(changedDistros)}]`);
 
     return okResult(true);
   } catch (err) {
