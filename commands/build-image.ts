@@ -3,12 +3,12 @@ import path from "node:path";
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
 import { $ } from "bun";
 import { parseArgs, pathFinder } from "./misc/lib";
-import { buildSchema } from "./misc/schemas";
+import { distroTagCacheSchema } from "./misc/schemas";
 
 export async function run(args: string[]): ResultAsync<true, Error> {
   const parse = parseArgs(
     { distro: "string", candidateTag: "string", "no-cache": "boolean" },
-    buildSchema,
+    distroTagCacheSchema,
     args,
   );
   if (parse.isError) {

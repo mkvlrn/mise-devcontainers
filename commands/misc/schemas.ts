@@ -22,17 +22,19 @@ export const distroSchema = z.strictObject({
   }),
 });
 
-export const buildSchema = z.strictObject({
+export const distroTagCacheSchema = z.strictObject({
   distro: distroSchema.shape.distro,
   candidateTag: z.string({ error: "candidateTag is required" }),
   "no-cache": z.boolean().default(false),
 });
 
-export const publishSchema = z.strictObject({
+export const distroTagImageSchema = z.strictObject({
   distro: distroSchema.shape.distro,
-  candidateTag: buildSchema.shape.candidateTag,
+  candidateTag: distroTagCacheSchema.shape.candidateTag,
   imageVersion: z.string({ error: "imageVersion is required" }),
 });
+
+export const distroTagSchema = distroTagImageSchema.omit({ imageVersion: true });
 
 export const envSchema = z.object({
   GHCR_TOKEN: z.string(),

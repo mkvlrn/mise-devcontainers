@@ -3,14 +3,10 @@ import path from "node:path";
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
 import { $ } from "bun";
 import { dirExists, parseArgs, pathFinder } from "./misc/lib";
-import { publishSchema } from "./misc/schemas";
+import { distroTagSchema } from "./misc/schemas";
 
 export async function run(args: string[]): ResultAsync<true, Error> {
-  const parse = parseArgs(
-    { distro: "string", candidateTag: "string", imageVersion: "string" },
-    publishSchema,
-    args,
-  );
+  const parse = parseArgs({ distro: "string", candidateTag: "string" }, distroTagSchema, args);
   if (parse.isError) {
     return errResult(new Error("could not parse template creation args", { cause: parse.error }));
   }

@@ -1,12 +1,12 @@
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
 import { $ } from "bun";
 import { parseArgs, pathFinder } from "./misc/lib";
-import { publishSchema } from "./misc/schemas";
+import { distroTagImageSchema } from "./misc/schemas";
 
 export async function run(args: string[]): ResultAsync<true, Error> {
   const parse = parseArgs(
     { distro: "string", candidateTag: "string", imageVersion: "string" },
-    publishSchema,
+    distroTagImageSchema,
     args,
   );
   if (parse.isError) {

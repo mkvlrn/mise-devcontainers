@@ -6,12 +6,12 @@ import ContainerConfig from "../templates/_common/.devcontainer/devcontainer.jso
 };
 import TemplateConfig from "../templates/_common/devcontainer-template.json" with { type: "jsonc" };
 import { parseArgs, pathFinder, readJsonc } from "./misc/lib";
-import { publishSchema } from "./misc/schemas";
+import { distroTagImageSchema } from "./misc/schemas";
 
 export async function run(args: string[]): ResultAsync<true, Error> {
   const parse = parseArgs(
     { distro: "string", candidateTag: "string", imageVersion: "string" },
-    publishSchema,
+    distroTagImageSchema,
     args,
   );
   if (parse.isError) {
