@@ -69,3 +69,10 @@ export const pathFinder = {
   testExecutionDir: (distro: string) => path.join(root, ".tmp", `.test-execution-${distro}`),
   publishCollectionDir: () => path.join(root, ".tmp", ".publish-collection"),
 } as const;
+
+export async function prepareOverlayDir(commonDir: string, distroDir: string, outputDir: string) {
+  await fs.rm(outputDir, { recursive: true, force: true });
+  await fs.mkdir(outputDir, { recursive: true });
+  await fs.cp(commonDir, outputDir, { recursive: true, force: true });
+  await fs.cp(distroDir, outputDir, { recursive: true, force: true });
+}

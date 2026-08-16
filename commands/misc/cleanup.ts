@@ -7,17 +7,23 @@ export function defer(fn: () => Promise<void>) {
 }
 
 export async function run(): ResultAsync<true, Error> {
-  try {
-    for await (const fn of tasks.reverse()) {
-      await fn();
-    }
+  const errors: unknown[] = [];
 
-    return okResult(true);
-  } catch (err) {
-    return errResult(new Error("test cleanup failed", { cause: err }));
-  } finally {
-    tasks.length = 0;
+  for await (const fn of tasks.reverse()) {
+    try {
+      await fn();
+    } catch (err) {
+      errors.push(err);
+    }
   }
+
+  tasks.length = 0;
+
+  if (errors.length > 0) {
+    return errResult(new AggregateError(errors, "test cleanup failed"));
+  }
+
+  return okResult(true);
 }
 
 export const cleanup = {

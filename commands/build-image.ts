@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
 import { $ } from "bun";
-import { parseArgs, pathFinder } from "./misc/lib";
+import { parseArgs, pathFinder, prepareOverlayDir } from "./misc/lib";
 import { distroTagCacheSchema } from "./misc/schemas";
 
 export async function run(args: string[]): ResultAsync<true, Error> {
@@ -45,10 +45,7 @@ async function prepareBuildFiles(
   outputDir: string,
 ): ResultAsync<true, Error> {
   try {
-    await fs.rm(outputDir, { recursive: true, force: true });
-    await fs.mkdir(outputDir, { recursive: true });
-    await fs.cp(commonDir, outputDir, { recursive: true, force: true });
-    await fs.cp(distroDir, outputDir, { recursive: true, force: true });
+    await prepareOverlayDir(commonDir, distroDir, outputDir);
     await fs.unlink(path.join(outputDir, "binscripts", ".gitkeep"));
 
     return okResult(true);

@@ -5,7 +5,7 @@ import ContainerConfig from "../templates/_common/.devcontainer/devcontainer.jso
   type: "jsonc",
 };
 import TemplateConfig from "../templates/_common/devcontainer-template.json" with { type: "jsonc" };
-import { parseArgs, pathFinder, readJsonc } from "./misc/lib";
+import { parseArgs, pathFinder, prepareOverlayDir, readJsonc } from "./misc/lib";
 import { distroTagImageSchema } from "./misc/schemas";
 
 export async function run(args: string[]): ResultAsync<true, Error> {
@@ -47,10 +47,7 @@ async function prepareTemplateFiles(
   outputDir: string,
 ): ResultAsync<true, Error> {
   try {
-    await fs.rm(outputDir, { recursive: true, force: true });
-    await fs.mkdir(outputDir, { recursive: true });
-    await fs.cp(commonDir, outputDir, { recursive: true, force: true });
-    await fs.cp(distroDir, outputDir, { recursive: true, force: true });
+    await prepareOverlayDir(commonDir, distroDir, outputDir);
 
     return okResult(true);
   } catch (err) {
