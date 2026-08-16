@@ -1,0 +1,23 @@
+[tools]
+biome = "2.5.8"
+bun = "1.3.14"
+cocogitto = "7.0.0"
+lefthook = "2.1.10"
+
+[hooks]
+postinstall = "lefthook install"
+
+[env]
+_.path = ["./node_modules/.bin"]
+GITHUB_ACTIONS = false
+GITHUB_RUN_ID = ""
+GITHUB_RUN_ATTEMPT = "1"
+GITHUB_OUTPUT = ""
+GITHUB_EVENT_NAME = ""
+GITHUB_EVENT_PATH = ""
+INPUT_DISTRO = "all"
+
+[settings]
+disable_backends = ["asdf"]
+use_versions_host = false
+minimum_release_age = "1d"

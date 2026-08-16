@@ -1,0 +1,2 @@
+[commit-msg.commands]
+cog-lint = { run = "cog verify --file {1}" }

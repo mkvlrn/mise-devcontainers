@@ -1,0 +1,15 @@
+{
+  "[css][jsonc][json][javascript][javascriptreact][typescript][typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "biome.enabled": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit",
+    "source.fixAll": "never",
+    "source.fixAll.sortJSON": "never",
+    "source.organizeImports": "never",
+    "source.sortImports": "never"
+  },
+  "eslint.enable": false
+}
