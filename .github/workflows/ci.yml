@@ -48,7 +48,10 @@ jobs:
       - id: changes
         env:
           INPUT_DISTRO: ${{ inputs.distro }}
-        run: bun main.ts detect-changes
+        run: |
+          bun main.ts detect-changes
+          echo '--- GITHUB_OUTPUT ---'
+          cat "$GITHUB_OUTPUT"
 
   build:
     needs: changes
