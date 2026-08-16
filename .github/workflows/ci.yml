@@ -246,5 +246,4 @@ jobs:
         run: |
           bun main.ts publish-template \
             --distro "${{ matrix.distro }}" \
-            --candidateTag "${{ needs.detect-changes.outputs.candidate-tag }}" \
-            --imageVersion "${{ needs.detect-changes.outputs.image-version }}"
+            --candidateTag "${{ needs.detect-changes.outputs.candidate-tag }}"
