@@ -28,7 +28,7 @@ export async function run(_: string[]): ResultAsync<true, Error> {
     return errResult(workflowDispatch.error);
   }
   if (workflowDispatch.value) {
-    githubOutputFile.flush();
+    githubOutputFile.end();
 
     return okResult(true);
   }
@@ -38,7 +38,7 @@ export async function run(_: string[]): ResultAsync<true, Error> {
     return errResult(changes.error);
   }
 
-  githubOutputFile.flush();
+  githubOutputFile.end();
 
   return okResult(true);
 }
