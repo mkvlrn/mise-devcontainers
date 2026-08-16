@@ -121,34 +121,11 @@ async function runTests(): Promise<void> {
     }
 
     if (attempt === attempts - 1) {
-      console.error("==> Restarting sshd in debug mode...");
+      console.error("==> Container status:");
+      await $`docker ps -a --filter name=${container}`;
 
-      await $`docker exec ${container} sh -c 'kill "$(cat /var/run/sshd.pid)"'`;
-
-      const sshdDebug = Bun.spawn(
-        ["docker", "exec", container, "/usr/sbin/sshd", "-D", "-ddd", "-e"],
-        {
-          stdout: "pipe",
-          stderr: "pipe",
-        },
-      );
-
-      await bun.sleep(500);
-
-      console.error("==> SSH diagnostics:");
-
-      await $`ssh \
-        -vvv \
-        -o BatchMode=yes \
-        -o ConnectionAttempts=1 \
-        -o ConnectTimeout=2 \
-        ${container} \
-        true`.nothrow();
-
-      sshdDebug.kill();
-
-      const debugOutput = await new Response(sshdDebug.stderr).text();
-      console.error(debugOutput);
+      console.error("==> Container logs:");
+      await $`docker logs ${container}`.nothrow();
 
       throw new Error("SSH did not become ready");
     }
