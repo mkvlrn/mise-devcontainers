@@ -122,18 +122,27 @@ async function runTests() {
     }
 
     if (attempt === attempts - 1) {
-      console.error("==> Fedora auth configuration:");
-      await $`docker exec ${container} sh -c \
-  'cat /etc/pam.d/sshd; echo "--- passwd ---"; getent passwd dev; echo "--- shadow ---"; passwd -S dev || true'`.nothrow();
+      console.error("==> Restarting sshd in debug mode:");
+
+      await $`docker exec ${container} sh -c 'pkill sshd || true'`.nothrow();
+
+      const sshdDebug = $`docker exec ${container} /usr/sbin/sshd -D -ddd -e`.nothrow();
+
+      await bun.sleep(500);
 
       console.error("==> SSH diagnostics:");
       await $`ssh \
-    -vvv \
-    -o BatchMode=yes \
-    -o ConnectionAttempts=1 \
-    -o ConnectTimeout=2 \
-    ${container} \
-    true`.nothrow();
+  -vvv \
+  -o BatchMode=yes \
+  -o ConnectionAttempts=1 \
+  -o ConnectTimeout=2 \
+  ${container} \
+  true`.nothrow();
+
+      await $`docker exec ${container} pkill sshd`.nothrow();
+
+      const debugResult = await sshdDebug;
+      console.error(debugResult.stderr.toString());
 
       throw new Error("SSH did not become ready");
     }
