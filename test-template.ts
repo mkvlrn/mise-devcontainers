@@ -49,8 +49,9 @@ async function setupHost(): Promise<void> {
   }
 
   if (!(await bun.file(signingKey).exists())) {
-    await bun.write(signingKey, "");
+    await $`ssh-keygen -q -t ed25519 -N "" -f ${signingKey}`;
     cleanup.defer(() => fs.unlink(signingKey));
+    cleanup.defer(() => fs.unlink(`${signingKey}.pub`));
   }
 
   if (!process.env["SSH_AUTH_SOCK"]) {
@@ -69,6 +70,8 @@ async function setupHost(): Promise<void> {
     process.env["SSH_AUTH_SOCK"] = authSock;
     process.env["SSH_AGENT_PID"] = agentPid;
   }
+
+  await $`ssh-add ${signingKey}`;
 }
 
 // setup test execution
