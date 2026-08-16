@@ -99,14 +99,16 @@ async function runTests() {
   await $`${testExecutionDir}/.devcontainer/up.sh`;
 
   console.log("==> Waiting for SSH...");
-  const secondsToWait = 8;
-  for (let attempt = 0; attempt < secondsToWait; attempt += 1) {
+
+  const attempts = 4;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
     const result = await $`ssh \
-  -o BatchMode=yes \
-  -o ConnectionAttempts=1 \
-  -o ConnectTimeout=2 \
-  ${container} \
-  true`
+    -o BatchMode=yes \
+    -o ConnectionAttempts=1 \
+    -o ConnectTimeout=2 \
+    ${container} \
+    true`
       .quiet()
       .nothrow();
 
@@ -114,20 +116,20 @@ async function runTests() {
       break;
     }
 
-    if (attempt === secondsToWait - 1) {
+    if (attempt === attempts - 1) {
       console.error("==> SSH diagnostics:");
       await $`ssh \
-    -vvv \
-    -o BatchMode=yes \
-    -o ConnectionAttempts=1 \
-    -o ConnectTimeout=2 \
-    ${container} \
-    true`.nothrow();
+      -vvv \
+      -o BatchMode=yes \
+      -o ConnectionAttempts=1 \
+      -o ConnectTimeout=2 \
+      ${container} \
+      true`.nothrow();
 
       throw new Error("SSH did not become ready");
     }
 
-    await bun.sleep(1000);
+    await bun.sleep(2000);
   }
 
   const remote = async (command: string) => {
