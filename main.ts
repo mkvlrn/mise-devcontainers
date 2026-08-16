@@ -37,4 +37,5 @@ if (!(command in commands)) {
 const result = await commands[command as CommandName](args);
 if (result.isError) {
   console.error(result.error);
+  process.exitCode = 1;
 }
