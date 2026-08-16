@@ -99,14 +99,22 @@ async function runTests() {
   await $`${testExecutionDir}/.devcontainer/up.sh`;
 
   console.log("==> Waiting for SSH...");
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    const result = await $`ssh -o ConnectTimeout=2 ${container} true`.quiet().nothrow();
+  const secondsToWait = 8;
+  for (let attempt = 0; attempt < secondsToWait; attempt += 1) {
+    const result = await $`ssh \
+  -o BatchMode=yes \
+  -o ConnectionAttempts=1 \
+  -o ConnectTimeout=2 \
+  ${container} \
+  true`
+      .quiet()
+      .nothrow();
 
     if (result.exitCode === 0) {
       break;
     }
 
-    if (attempt === 29) {
+    if (attempt === secondsToWait - 1) {
       throw new Error("SSH did not become ready");
     }
 
