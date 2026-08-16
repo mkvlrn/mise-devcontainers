@@ -83,6 +83,9 @@ async function setupTestExecution() {
       force: true,
     },
   );
+  for (const script of ["up.sh", "down.sh", "remove.sh"]) {
+    await fs.chmod(path.join(testExecutionDir, ".devcontainer", script), 0o755);
+  }
 }
 
 // do the deed
