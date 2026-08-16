@@ -48,7 +48,7 @@ jobs:
       - id: changes
         env:
           INPUT_DISTRO: ${{ inputs.distro }}
-        run: bun detect-changes.ts
+        run: bun main.ts detect-changes
 
   build:
     needs: changes
@@ -82,7 +82,7 @@ jobs:
         env:
           MISE_GITHUB_TOKEN: ${{ secrets.MISE_GITHUB_TOKEN }}
         run: |
-          bun build-image.ts \
+          bun main.ts build-image \
             --distro "${{ matrix.distro }}" \
             --candidateTag "${{ needs.changes.outputs.candidate-tag }}"
 
@@ -109,7 +109,7 @@ jobs:
 
       - name: Create template
         run: |
-          bun create-template.ts \
+          bun main.ts create-template \
             --distro "${{ matrix.distro }}" \
             --candidateTag "${{ needs.changes.outputs.candidate-tag }}" \
             --imageVersion "${{ needs.changes.outputs.image-version }}"
@@ -161,7 +161,7 @@ jobs:
           path: .publish-template/${{ matrix.distro }}
 
       - name: Test template
-        run: bun test-template.ts --distro "${{ matrix.distro }}"
+        run: bun main.ts test-template --distro "${{ matrix.distro }}"
 
   push:
     needs:
@@ -195,7 +195,7 @@ jobs:
 
       - name: Promote image
         run: |
-          bun push.ts \
+          bun main.ts push-image \
             --distro "${{ matrix.distro }}" \
             --candidateTag "${{ needs.changes.outputs.candidate-tag }}" \
             --imageVersion "${{ needs.changes.outputs.image-version }}"
@@ -241,7 +241,7 @@ jobs:
 
       - name: Publish template
         run: |
-          bun publish.ts \
+          bun main.ts publish-template \
             --distro "${{ matrix.distro }}" \
             --candidateTag "${{ needs.changes.outputs.candidate-tag }}" \
             --imageVersion "${{ needs.changes.outputs.image-version }}"

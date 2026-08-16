@@ -1,25 +1,32 @@
+import fsSync from "node:fs";
+import path from "node:path";
 import { z } from "zod";
-import { values } from "./lib";
+
+export const root = path.resolve(import.meta.dirname, "..", "..");
+
+export const distroList = fsSync
+  .readdirSync(path.join(root, "distros"), { withFileTypes: true })
+  .filter((f) => f.isDirectory())
+  .filter((f) => f.name !== "_common")
+  .map((f) => f.name);
 
 export const distroSchema = z.strictObject({
-  distro: z.enum(values.distros, {
+  distro: z.enum(distroList, {
     error: (issue) => {
       if (issue.input === undefined) {
         return "distro is required";
       }
 
-      return `distro must be one of ${values.distros.join(", ")}`;
+      return `distro must be one of ${distroList.join(", ")}`;
     },
   }),
 });
-export type Distro = z.infer<typeof distroSchema>;
 
 export const buildSchema = z.strictObject({
   distro: distroSchema.shape.distro,
   candidateTag: z.string({ error: "candidateTag is required" }),
-  "no-cache": z.boolean().default(false).optional(),
+  "no-cache": z.boolean().default(false),
 });
-export type Build = z.infer<typeof buildSchema>;
 
 export const publishSchema = z.strictObject({
   distro: distroSchema.shape.distro,
@@ -27,7 +34,9 @@ export const publishSchema = z.strictObject({
   imageVersion: z.string({ error: "imageVersion is required" }),
 });
 
-export const githubActionsEnvSchema = z.object({
+export const envSchema = z.object({
+  GHCR_TOKEN: z.string(),
+  GHCR_USERNAME: z.string(),
   GITHUB_ACTIONS: z
     .string()
     .optional()
@@ -37,6 +46,6 @@ export const githubActionsEnvSchema = z.object({
   GITHUB_OUTPUT: z.string(),
   GITHUB_EVENT_NAME: z.string(),
   GITHUB_EVENT_PATH: z.string(),
-  INPUT_DISTRO: z.string(),
+  INPUT_DISTRO: z.enum(["all", ...distroList]),
   SSH_AUTH_SOCK: z.string().optional(),
 });

@@ -15,6 +15,10 @@
   "overrides": [
     {
       "includes": ["**/*"],
+      "javascript": { "globals": ["Bun"] }
+    },
+    {
+      "includes": ["**/*"],
       "linter": {
         "rules": {
           "correctness": { "noNodejsModules": "off" },

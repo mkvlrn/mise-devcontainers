@@ -1,0 +1,101 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
+import { $ } from "bun";
+import { parseArgs, pathFinder } from "./misc/lib";
+import { buildSchema } from "./misc/schemas";
+
+export async function run(args: string[]): ResultAsync<true, Error> {
+  const parse = parseArgs(
+    { distro: "string", candidateTag: "string", "no-cache": "boolean" },
+    buildSchema,
+    args,
+  );
+  if (parse.isError) {
+    return errResult(new Error("could not parse image build args", { cause: parse.error }));
+  }
+
+  const { distro, candidateTag, "no-cache": noCache } = parse.value;
+  const imageRef = pathFinder.imageRef(distro);
+  const commonDir = pathFinder.distrosDir("_common");
+  const distroDir = pathFinder.distrosDir(distro);
+  const outputDir = pathFinder.buildImageDir(distro);
+
+  const preparation = await prepareBuildFiles(commonDir, distroDir, outputDir);
+  if (preparation.isError) {
+    return errResult(preparation.error);
+  }
+
+  const merge = await mergeDockerfiles(commonDir, outputDir);
+  if (merge.isError) {
+    return errResult(merge.error);
+  }
+
+  const build = await buildImage(imageRef, noCache ?? false, candidateTag, outputDir);
+  if (build.isError) {
+    return errResult(build.error);
+  }
+
+  return okResult(true);
+}
+
+async function prepareBuildFiles(
+  commonDir: string,
+  distroDir: string,
+  outputDir: string,
+): ResultAsync<true, Error> {
+  try {
+    await fs.rm(outputDir, { recursive: true, force: true });
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.cp(commonDir, outputDir, { recursive: true, force: true });
+    await fs.cp(distroDir, outputDir, { recursive: true, force: true });
+    await fs.unlink(path.join(outputDir, "binscripts", ".gitkeep"));
+
+    return okResult(true);
+  } catch (err) {
+    return errResult(new Error("could not prepare build files", { cause: err }));
+  }
+}
+
+async function mergeDockerfiles(commonDir: string, outputDir: string): ResultAsync<true, Error> {
+  try {
+    const commonDockerfile = Bun.file(path.join(commonDir, "Dockerfile"));
+    const distroDockerfile = Bun.file(path.join(outputDir, "Dockerfile"));
+    const mergedDockerfile = `${await distroDockerfile.text()}${await commonDockerfile.text()}`;
+    await Bun.write(distroDockerfile, mergedDockerfile);
+
+    return okResult(true);
+  } catch (err) {
+    return errResult(new Error("could not merge Dockerfiles", { cause: err }));
+  }
+}
+
+async function buildImage(
+  imageRef: string,
+  noCache: boolean,
+  candidateTag: string,
+  outputDir: string,
+): ResultAsync<true, Error> {
+  const cacheFlag: string[] = [];
+  if (noCache) {
+    cacheFlag.push("--no-cache");
+  }
+
+  const dockerArgs: string[] = [];
+  dockerArgs.push("--push");
+  dockerArgs.push(...["--cache-from", `type=registry,ref=${imageRef}:buildcache`]);
+  dockerArgs.push(...["--cache-to", `type=registry,ref=${imageRef}:buildcache,mode=max`]);
+  dockerArgs.push(...["--secret", "id=mise_github_token,env=MISE_GITHUB_TOKEN"]);
+  dockerArgs.push(...cacheFlag);
+  dockerArgs.push(...["-t", `${imageRef}:${candidateTag}`]);
+  dockerArgs.push(...["-f", `${outputDir}/Dockerfile`]);
+  dockerArgs.push(outputDir);
+
+  try {
+    await $`docker buildx build ${dockerArgs} > ${Bun.stdout}`;
+
+    return okResult(true);
+  } catch (err) {
+    return errResult(new Error("could not build image", { cause: err }));
+  }
+}
