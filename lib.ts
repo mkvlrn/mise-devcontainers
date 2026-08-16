@@ -47,8 +47,8 @@ const root = import.meta.dirname;
 export const values = {
   root,
   distros: (await fs.readdir(path.join(root, "src"))).filter((d) => d !== "_common"),
-  imageName: (distro: string) => `mkvlrn/mise-devcontainers-${distro}`,
-  imageRef: (distro: string) => `ghcr.io/mkvlrn/mise-devcontainers-${distro}`,
+  imageName: (distro: string) => `mkvlrn/mise-devcontainer-${distro}`,
+  imageRef: (distro: string) => `ghcr.io/mkvlrn/mise-devcontainer-${distro}`,
   srcDir: (distro: string) => path.join(root, "src", distro),
   templatesDir: (distro: string) => path.join(root, "templates", distro),
   buildImageDir: (distro: string) => path.join(root, ".build-image", distro),

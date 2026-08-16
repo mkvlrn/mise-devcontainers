@@ -15,7 +15,6 @@ SSH_USER_CONFIG="$HOME/.ssh/config"
 
 # Read the distro name from the image configured in devcontainer.json.
 get_distro() {
-  echo "$CONFIG"
   sed -n \
     's#.*"image"[[:space:]]*:[[:space:]]*"ghcr.io/mkvlrn/mise-devcontainer-\([^:"]*\).*#\1#p' \
     "$CONFIG"

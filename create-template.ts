@@ -36,7 +36,7 @@ const containerName = `mise-devcontainer-${distro}-\${localWorkspaceFolderBasena
 const containerConfigPath = path.join(outputDir, ".devcontainer", "devcontainer.json");
 const containerConfig = await readJsonc<typeof ContainerConfig>(containerConfigPath);
 containerConfig.name = containerName;
-containerConfig.runArgs[0] = containerName;
+containerConfig.runArgs[0] = `--name=${containerName}`;
 containerConfig.image = `${values.imageRef(distro)}:${candidateTag}`;
 await bun.write(containerConfigPath, `${JSON.stringify(containerConfig, null, 2)}\n`);
 
