@@ -100,6 +100,7 @@ async function runTests() {
     await $`${testExecutionDir}/.devcontainer/remove.sh`;
   });
   await $`${testExecutionDir}/.devcontainer/up.sh`;
+  await $`docker exec ${container} sh -c 'cat /home/dev/.ssh/authorized_keys 2>/dev/null || echo "NO AUTHORIZED KEYS"'`;
 
   console.log("==> Waiting for SSH...");
 
