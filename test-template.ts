@@ -122,14 +122,17 @@ async function runTests() {
     }
 
     if (attempt === attempts - 1) {
+      console.error("==> Container logs:");
+      await $`docker logs ${container}`.nothrow();
+
       console.error("==> SSH diagnostics:");
       await $`ssh \
-      -vvv \
-      -o BatchMode=yes \
-      -o ConnectionAttempts=1 \
-      -o ConnectTimeout=2 \
-      ${container} \
-      true`.nothrow();
+    -vvv \
+    -o BatchMode=yes \
+    -o ConnectionAttempts=1 \
+    -o ConnectTimeout=2 \
+    ${container} \
+    true`.nothrow();
 
       throw new Error("SSH did not become ready");
     }
