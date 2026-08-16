@@ -115,6 +115,15 @@ async function runTests() {
     }
 
     if (attempt === secondsToWait - 1) {
+      console.error("==> SSH diagnostics:");
+      await $`ssh \
+    -vvv \
+    -o BatchMode=yes \
+    -o ConnectionAttempts=1 \
+    -o ConnectTimeout=2 \
+    ${container} \
+    true`.nothrow();
+
       throw new Error("SSH did not become ready");
     }
 
