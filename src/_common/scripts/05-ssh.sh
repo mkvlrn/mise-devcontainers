@@ -13,4 +13,5 @@ PermitRootLogin no
 PasswordAuthentication yes
 PermitEmptyPasswords yes
 AllowUsers dev
+UsePAM no
 EOF
