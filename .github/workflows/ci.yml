@@ -192,7 +192,7 @@ jobs:
 
       - name: Promote image
         run: |
-          bun main.ts push-image \
+          bun main.ts promote-image \
             --distro "${{ matrix.distro }}" \
             --candidateTag "${{ needs.changes.outputs.candidate-tag }}" \
             --imageVersion "${{ needs.changes.outputs.image-version }}"
