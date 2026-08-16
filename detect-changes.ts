@@ -30,8 +30,8 @@ if (env.GITHUB_EVENT_NAME === "workflow_dispatch") {
 
 // get changed files
 const event = await file(env.GITHUB_EVENT_PATH).json();
-const baseSha = event.pull_requests.base.sha;
-const mergeSha = event.pull_requests.merge_commit_sha;
+const baseSha = event.pull_request.base.sha;
+const mergeSha = event.pull_request.merge_commit_sha;
 const changedFiles = (await $`git diff --name-only ${baseSha} ${mergeSha}`).text();
 
 // changes in common trigger all builds
