@@ -67,7 +67,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -181,7 +181,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -218,7 +218,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
