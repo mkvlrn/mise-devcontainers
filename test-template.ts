@@ -124,7 +124,7 @@ async function runTests() {
     if (attempt === attempts - 1) {
       console.error("==> Restarting sshd in debug mode:");
 
-      await $`docker exec ${container} sh -c 'pkill sshd || true'`.nothrow();
+      await $`docker exec ${container} sh -c 'kill "$(cat /var/run/sshd.pid)"'`;
 
       const sshdDebug = $`docker exec ${container} /usr/sbin/sshd -D -ddd -e`.nothrow();
 
