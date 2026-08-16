@@ -122,9 +122,9 @@ async function runTests() {
     }
 
     if (attempt === attempts - 1) {
-      console.error("==> SSH server logs:");
+      console.error("==> Fedora auth configuration:");
       await $`docker exec ${container} sh -c \
-  'journalctl -u sshd --no-pager -n 50 2>/dev/null || tail -n 50 /var/log/secure 2>/dev/null || true'`.nothrow();
+  'cat /etc/pam.d/sshd; echo "--- passwd ---"; getent passwd dev; echo "--- shadow ---"; passwd -S dev || true'`.nothrow();
 
       console.error("==> SSH diagnostics:");
       await $`ssh \
