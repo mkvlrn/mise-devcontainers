@@ -1,0 +1,26 @@
+{
+  "$schema": "https://biomejs.dev/schemas/latest/schema.json",
+  "root": true,
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**/*",
+      "!**/node_modules/**/*",
+      "!**/build/**/*",
+      "!**/coverage/**/*",
+      "!**/*.d.ts"
+    ]
+  },
+  "extends": ["@mkvlrn/config/biome"],
+  "overrides": [
+    {
+      "includes": ["**/*"],
+      "linter": {
+        "rules": {
+          "correctness": { "noNodejsModules": "off" },
+          "suspicious": { "noConsole": "info" }
+        }
+      }
+    }
+  ]
+}

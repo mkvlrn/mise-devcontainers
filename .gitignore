@@ -1,4 +1,4 @@
-.build/
-.build-template/
-.test-template/
+.build-image/
 .publish-template/
+.test-execution/
+node_modules/

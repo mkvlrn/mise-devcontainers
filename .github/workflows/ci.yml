@@ -1,0 +1,246 @@
+name: ci
+
+on:
+  workflow_dispatch:
+    inputs:
+      distro:
+        description: Distro to build
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - archlinux
+          - debian
+          - fedora
+          - ubuntu
+
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  changes:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.user.login == 'renovate[bot]'
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      distros: ${{ steps.changes.outputs.distros }}
+      candidate-tag: ${{ steps.changes.outputs.candidate_tag }}
+      image-version: ${{ steps.changes.outputs.image_version }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - id: changes
+        env:
+          INPUT_DISTRO: ${{ inputs.distro }}
+        run: bun detect-changes.ts
+
+  build:
+    needs: changes
+    if: needs.changes.outputs.distros != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Login to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+        run: .github/workflows/scripts/login-ghcr.sh
+
+      - name: Build candidate
+        env:
+          MISE_GITHUB_TOKEN: ${{ secrets.MISE_GITHUB_TOKEN }}
+        run: |
+          bun build-image.ts \
+            --distro "${{ matrix.distro }}" \
+            --candidateTag "${{ needs.changes.outputs.candidate-tag }}"
+
+  create-template:
+    needs:
+      - changes
+      - build
+    if: needs.changes.outputs.distros != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Create template
+        run: |
+          bun create-template.ts \
+            --distro "${{ matrix.distro }}" \
+            --candidateTag "${{ needs.changes.outputs.candidate-tag }}" \
+            --imageVersion "${{ needs.changes.outputs.image-version }}"
+
+      - name: Upload template
+        uses: actions/upload-artifact@v4
+        with:
+          name: template-${{ matrix.distro }}
+          path: .publish-template/${{ matrix.distro }}
+          if-no-files-found: error
+          retention-days: 1
+
+  test:
+    needs:
+      - changes
+      - create-template
+    if: needs.changes.outputs.distros != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Dev Container CLI
+        run: npm install -g @devcontainers/cli
+
+      - name: Login to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+        run: .github/workflows/scripts/login-ghcr.sh
+
+      - name: Download template
+        uses: actions/download-artifact@v4
+        with:
+          name: template-${{ matrix.distro }}
+          path: .publish-template/${{ matrix.distro }}
+
+      - name: Test template
+        run: bun test-template.ts --distro "${{ matrix.distro }}"
+
+  push:
+    needs:
+      - changes
+      - test
+    if: needs.changes.outputs.distros != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Login to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+        run: .github/workflows/scripts/login-ghcr.sh
+
+      - name: Promote image
+        run: |
+          bun push.ts \
+            --distro "${{ matrix.distro }}" \
+            --candidateTag "${{ needs.changes.outputs.candidate-tag }}" \
+            --imageVersion "${{ needs.changes.outputs.image-version }}"
+
+  publish:
+    needs:
+      - changes
+      - push
+    if: needs.changes.outputs.distros != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.changes.outputs.distros) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Dev Container CLI
+        run: npm install -g @devcontainers/cli
+
+      - name: Login to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+        run: .github/workflows/scripts/login-ghcr.sh
+
+      - name: Download tested template
+        uses: actions/download-artifact@v4
+        with:
+          name: template-${{ matrix.distro }}
+          path: .publish-template/${{ matrix.distro }}
+
+      - name: Publish template
+        run: |
+          bun publish.ts \
+            --distro "${{ matrix.distro }}" \
+            --candidateTag "${{ needs.changes.outputs.candidate-tag }}" \
+            --imageVersion "${{ needs.changes.outputs.image-version }}"

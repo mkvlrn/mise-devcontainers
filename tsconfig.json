@@ -1,0 +1,7 @@
+{
+  "extends": ["@mkvlrn/config/tsconfig"],
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["bun", "node"]
+  }
+}

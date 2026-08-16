@@ -1,0 +1,40 @@
+{
+  "name": "mise-devcontainers",
+  "description": "A template for esm Bun projects using typescript",
+  "version": "0.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "author": "Mike Valeriano <mkvlrn@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mkvlrn/template-bun"
+  },
+  "keywords": [
+    "bun",
+    "typescript",
+    "esm",
+    "template"
+  ],
+  "devEngines": {
+    "runtime": {
+      "name": "bun",
+      "version": "1.3.14"
+    },
+    "packageManager": {
+      "name": "bun",
+      "version": "1.3.14"
+    }
+  },
+  "devDependencies": {
+    "@mkvlrn/config": "0.4.7",
+    "@types/bun": "1.3.14",
+    "@types/node": "26.2.0",
+    "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "@mkvlrn/result": "0.3.4",
+    "dayjs": "1.11.21",
+    "zod": "4.4.3"
+  }
+}
