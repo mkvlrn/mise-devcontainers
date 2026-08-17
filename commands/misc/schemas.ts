@@ -48,6 +48,6 @@ export const envSchema = z.object({
   GITHUB_OUTPUT: z.string(),
   GITHUB_EVENT_NAME: z.string(),
   GITHUB_EVENT_PATH: z.string(),
-  INPUT_DISTRO: z.enum(["all", ...distroList]),
+  INPUT_DISTRO: z.enum(["all", ...distroList]).optional(),
   SSH_AUTH_SOCK: z.string().optional(),
 });
