@@ -18,6 +18,10 @@ on:
     types:
       - closed
 
+env:
+  GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GHCR_USERNAME: ${{ github.actor }}
+
 jobs:
   detect-changes:
     if: >
@@ -33,9 +37,6 @@ jobs:
       distros: ${{ steps.changes.outputs.distros }}
       candidate-tag: ${{ steps.changes.outputs.candidate_tag }}
       image-version: ${{ steps.changes.outputs.image_version }}
-    env:
-      GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GHCR_USERNAME: ${{ github.actor }}
     steps:
       - name: setup checkout action
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -54,8 +55,6 @@ jobs:
           INPUT_DISTRO: ${{ inputs.distro }}
         run: |
           bun main.ts detect-changes
-          echo '--- GITHUB_OUTPUT ---'
-          cat "$GITHUB_OUTPUT"
 
   build-image:
     needs: detect-changes
