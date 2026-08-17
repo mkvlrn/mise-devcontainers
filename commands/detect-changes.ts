@@ -60,9 +60,9 @@ function processWorkflowDispatch(
   try {
     if (env.GITHUB_EVENT_NAME === "workflow_dispatch") {
       if (env.INPUT_DISTRO === "all") {
-        outputFile.write(`distros=[${JSON.stringify(distroList)}]\n`);
+        outputFile.write(`distros=${JSON.stringify(distroList)}\n`);
       } else {
-        outputFile.write(`distros=["${env.INPUT_DISTRO}"]\n`);
+        outputFile.write(`distros=${JSON.stringify([env.INPUT_DISTRO])}\n`);
       }
 
       return okResult(true);
@@ -87,7 +87,7 @@ async function processChanges(
     // biome-ignore lint/performance/useTopLevelRegex: only called once
     const changesInCommon = /^distros\/_common/;
     if (changesInCommon.test(changedFiles)) {
-      outputFile.write(`distros=[${JSON.stringify(distroList)}]`);
+      outputFile.write(`distros=${JSON.stringify(distroList)}`);
 
       return okResult(true);
     }
@@ -98,7 +98,7 @@ async function processChanges(
         changedDistros.push(distro);
       }
     }
-    outputFile.write(`distros=[${JSON.stringify(changedDistros)}]`);
+    outputFile.write(`distros=${JSON.stringify(changedDistros)}`);
 
     return okResult(true);
   } catch (err) {
