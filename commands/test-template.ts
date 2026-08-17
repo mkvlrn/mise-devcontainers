@@ -99,7 +99,7 @@ async function setupHostEnvironment(): ResultAsync<true, Error> {
 
     return okResult(true);
   } catch (err) {
-    return errResult(new Error("could not setup host evironment for testing", { cause: err }));
+    return errResult(new Error("could not setup host environment for testing", { cause: err }));
   }
 }
 

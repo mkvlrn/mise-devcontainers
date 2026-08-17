@@ -2,24 +2,25 @@
 
 Ready-to-use development containers built around [mise](https://mise.jdx.dev/), available in multiple Linux flavors.
 
+The containers are managed with the Dev Container CLI and accessed through SSH, keeping editor integration optional.
+
 ## Requirements
 
 The host needs:
 
 - Docker
 - [Dev Container CLI](https://github.com/devcontainers/cli)
-- `curl`
 - an SSH client
 - an editor with Remote SSH support, if desired
 
-Dev Container editor extensions are **not required or recommended**. Containers are managed from the CLI and accessed through SSH.
-
 ## Install
 
-From the root of your project:
+From the root of a project:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mkvlrn/mise-devcontainers/main/install.sh | sh -s -- --distro archlinux
+devcontainer templates apply \
+  -t ghcr.io/mkvlrn/mise-devcontainers/archlinux \
+  -w .
 ```
 
 Available flavors:
@@ -31,27 +32,17 @@ fedora
 ubuntu
 ```
 
-This creates:
-
-```text
-.devcontainer/
-├── devcontainer.json
-├── down.sh
-├── remove.sh
-└── up.sh
-```
-
-The selected image is pinned to the current GHCR digest.
+This creates a `.devcontainer/` containing the container configuration and helper scripts.
 
 ## Usage
 
-Start the container:
+Start or create the container:
 
 ```sh
 .devcontainer/up.sh
 ```
 
-When ready, the script prints its SSH target:
+When ready, it is registered as an SSH target:
 
 ```text
 mise-devcontainer-<distro>-<project>
@@ -63,7 +54,7 @@ Connect directly:
 ssh mise-devcontainer-<distro>-<project>
 ```
 
-Or use the same target with your editor's Remote SSH support.
+or use the same target with any editor supporting Remote SSH.
 
 Recreate the container:
 
@@ -71,13 +62,13 @@ Recreate the container:
 .devcontainer/up.sh --recreate
 ```
 
-Stop it while keeping it available for later:
+Stop it:
 
 ```sh
 .devcontainer/down.sh
 ```
 
-Remove the container and its associated SSH target and image:
+Remove it, its SSH entry, and its temporary image:
 
 ```sh
 .devcontainer/remove.sh
@@ -85,29 +76,11 @@ Remove the container and its associated SSH target and image:
 
 ## How it works
 
-The Dev Container CLI creates and starts the container. Docker exposes SSH on a dynamic localhost port, and `up.sh` registers it as a normal SSH target.
+The Dev Container CLI creates the environment, Docker runs it, and SSH provides editor-independent access.
 
-```text
-Dev Container CLI → creates the environment
-Docker            → runs and isolates it
-SSH               → provides access
-mise              → manages project tools
-Editor            → connects through SSH
-```
+SSH is exposed only on a dynamically assigned localhost port. The helper scripts maintain separate SSH configuration entries and include them from the user's normal SSH configuration.
 
-SSH is bound only to the host loopback interface. Generated SSH entries are kept separately and included from the user's main SSH config.
-
-## Why this approach?
-
-Dev Container editor integration is fragmented. Official extensions are tied to Microsoft's VS Code distribution, while other editors and marketplaces require different solutions.
-
-These aren't Features or Templates either, but complete, opinionated development environments.
-
-Using SSH keeps the editor out of the equation: terminals, VSCodium, VS Code, JetBrains, Zed, and other SSH-capable tools can all access the same environment.
-
-## What's included
-
-All flavors provide:
+Each container provides:
 
 - [mise](https://mise.jdx.dev/)
 - Docker-in-Docker
@@ -115,63 +88,20 @@ All flavors provide:
 - Fish
 - Git
 - SSH agent forwarding
-- host Git config and signing key
-- non-root `dev` user with sudo
-- useful CLI tools managed by mise
+- host Git configuration and signing key
+- a non-root `dev` user with sudo
+- common CLI tools managed by mise
 - projects mounted under `/code/<project>`
 
-## Flavors
+Project-specific runtimes and tools remain in the project's mise configuration.
 
-### Arch Linux
+## Images
 
-Rolling release with up-to-date system packages.
-
-**Image:** `ghcr.io/mkvlrn/mise-devcontainer-archlinux`
-
-### Debian Trixie
-
-Debian Trixie slim: smaller and more conservative, with broad glibc compatibility.
-
-**Image:** `ghcr.io/mkvlrn/mise-devcontainer-debian`
-
-### Fedora
-
-Current Fedora (44) release with a modern userspace and RPM/DNF package ecosystem.
-
-**Image:** `ghcr.io/mkvlrn/mise-devcontainer-fedora`
-
-### Ubuntu
-
-Current Ubuntu (26.04) LTS release.
-
-**Image:** `ghcr.io/mkvlrn/mise-devcontainer-ubuntu`
-
-## mise
-
-The image provides mise and a small global toolset. Project runtimes and tools stay with the project:
-
-```toml
-[tools]
-node = "26"
-pnpm = "11"
+```text
+ghcr.io/mkvlrn/mise-devcontainer-archlinux
+ghcr.io/mkvlrn/mise-devcontainer-debian
+ghcr.io/mkvlrn/mise-devcontainer-fedora
+ghcr.io/mkvlrn/mise-devcontainer-ubuntu
 ```
 
-## Updating
-
-Images use `current` plus timestamped tags. The installer pins `current` to its digest, so existing projects don't change when new images are published.
-
-Run the installer again to intentionally update.
-
-## Building locally
-
-```sh
-./build.sh --distro archlinux
-```
-
-Without cache:
-
-```sh
-./build.sh --distro archlinux --no-cache
-```
-
-Common build files are shared, with `distros/<flavor>/` providing distro-specific overrides.
+CI builds and tests candidate images and templates before promoting images and publishing the corresponding Dev Container Templates. Published configurations pin the selected image to its tested digest.
