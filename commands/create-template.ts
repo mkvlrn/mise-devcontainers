@@ -1,4 +1,3 @@
-import fs from "node:fs/promises";
 import path from "node:path";
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
 import ContainerConfig from "../templates/_common/.devcontainer/devcontainer.json" with {
@@ -61,11 +60,9 @@ async function configureDevcontainerConfig(
   candidateTag: string,
 ): ResultAsync<true, Error> {
   try {
-    const containerName = `mise-devcontainer-${distro}-\${localWorkspaceFolderBasename}`;
     const containerConfigPath = path.join(outputDir, ".devcontainer", "devcontainer.json");
     const containerConfig = await readJsonc<typeof ContainerConfig>(containerConfigPath);
-    containerConfig.name = containerName;
-    containerConfig.runArgs[0] = `--name=${containerName}`;
+    containerConfig.name = `mise-devcontainer-${distro}-\${localWorkspaceFolderBasename}`;
     containerConfig.image = `${pathFinder.imageRef(distro)}:${candidateTag}`;
     await Bun.write(containerConfigPath, `${JSON.stringify(containerConfig, null, 2)}\n`);
 
