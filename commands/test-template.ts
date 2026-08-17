@@ -136,54 +136,20 @@ async function runTests(
   testSuiteFile: string,
 ): ResultAsync<true, Error> {
   try {
-    const project = path.basename(testExecutionDir);
-    const container = `mise-devcontainer-${distro}-${project}`;
+    const sshTarget = await getSshTarget(distro, testExecutionDir);
 
     cleanup.defer(async () => {
       await $`${testExecutionDir}/.devcontainer/remove.sh`;
     });
+
     await $`${testExecutionDir}/.devcontainer/up.sh`;
 
-    console.log("==> Waiting for SSH...");
-    const attempts = 4;
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
-      // biome-ignore lint/performance/noAwaitInLoops: gotta keep trying
-      const result = await $`ssh \
-        -o BatchMode=yes \
-        -o ConnectionAttempts=1 \
-        -o ConnectTimeout=2 \
-        ${container} \
-        true`
-        .quiet()
-        .nothrow();
-
-      if (result.exitCode === 0) {
-        break;
-      }
-
-      if (attempt === attempts - 1) {
-        console.error("==> Container status:");
-        await $`docker ps -a --filter name=${container}`;
-
-        console.error("==> Container logs:");
-        await $`docker logs ${container}`.nothrow();
-
-        throw new Error("SSH did not become ready");
-      }
-
-      await Bun.sleep(2000);
+    const sshReady = await waitForSsh(sshTarget, testExecutionDir);
+    if (sshReady.isError) {
+      return errResult(sshReady.error);
     }
 
-    const remote = async (command: string) => {
-      const result = await $`ssh ${container} ${command}`.quiet().nothrow();
-
-      return {
-        exitCode: result.exitCode,
-        stdout: result.stdout.toString(),
-        stderr: result.stderr.toString(),
-      };
-    };
-
+    const remote = createRemote(sshTarget);
     const testModule = await import(url.pathToFileURL(testSuiteFile).href);
     await testModule.runTests(remote);
 
@@ -191,4 +157,70 @@ async function runTests(
   } catch (err) {
     return errResult(new Error("could not run template tests", { cause: err }));
   }
+}
+
+async function getSshTarget(distro: string, testExecutionDir: string) {
+  const project = path.basename(testExecutionDir);
+  const projectHash = (await $`printf %s ${testExecutionDir} | git hash-object --stdin`.text())
+    .trim()
+    .slice(0, 8);
+
+  return `mise-devcontainer-${distro}-${project}-${projectHash}`;
+}
+
+async function waitForSsh(sshTarget: string, testExecutionDir: string): ResultAsync<true, Error> {
+  console.log("==> Waiting for SSH...");
+
+  const attempts = 4;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    // biome-ignore lint/performance/noAwaitInLoops: gotta keep trying
+    const result = await $`ssh \
+      -o BatchMode=yes \
+      -o ConnectionAttempts=1 \
+      -o ConnectTimeout=2 \
+      ${sshTarget} \
+      true`
+      .quiet()
+      .nothrow();
+
+    if (result.exitCode === 0) {
+      return okResult(true);
+    }
+
+    if (attempt === attempts - 1) {
+      await printContainerDiagnostics(testExecutionDir);
+
+      return errResult(new Error("SSH did not become ready"));
+    }
+
+    await Bun.sleep(2000);
+  }
+
+  return errResult(new Error("SSH did not become ready"));
+}
+
+async function printContainerDiagnostics(testExecutionDir: string) {
+  const containerId = (
+    await $`docker container ls -aq \
+      --filter ${`label=devcontainer.local_folder=${testExecutionDir}`}`.text()
+  ).trim();
+
+  console.error("==> Container status:");
+  await $`docker ps -a --filter id=${containerId}`;
+
+  console.error("==> Container logs:");
+  await $`docker logs ${containerId}`.nothrow();
+}
+
+function createRemote(sshTarget: string) {
+  return async (command: string) => {
+    const result = await $`ssh ${sshTarget} ${command}`.quiet().nothrow();
+
+    return {
+      exitCode: result.exitCode,
+      stdout: result.stdout.toString(),
+      stderr: result.stderr.toString(),
+    };
+  };
 }
