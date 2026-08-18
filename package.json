@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@mkvlrn/result": "0.3.4",
-    "dayjs": "1.11.21",
+    "dayjs": "1.11.23",
     "zod": "4.4.3"
   }
 }
