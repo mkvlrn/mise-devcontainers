@@ -48,6 +48,9 @@ export const envSchema = z.object({
   GITHUB_OUTPUT: z.string(),
   GITHUB_EVENT_NAME: z.string(),
   GITHUB_EVENT_PATH: z.string(),
-  INPUT_DISTRO: z.enum(["all", ...distroList]).optional(),
+  INPUT_DISTRO: z
+    .enum(["all", ...distroList])
+    .or(z.literal(""))
+    .transform((value) => value || undefined),
   SSH_AUTH_SOCK: z.string().optional(),
 });
