@@ -1,66 +1,31 @@
 # mise-devcontainers
 
-Ready-to-use [Dev Containers](https://containers.dev/) built around [mise](https://mise.jdx.dev/), available in multiple Linux flavors.
+Ready-to-use [Dev Containers](https://containers.dev/) built around [mise](https://mise.jdx.dev/), available in Arch Linux, Debian, Fedora, and Ubuntu.
 
-They follow the Dev Container specification and can be used directly by compatible editors and tools. Optional helper scripts provide the same basic lifecycle from the command line, with SSH integration for editors and tools without native Dev Container support.
-
-## Usage
-
-Use the generated `.devcontainer/` normally with a Dev Container-compatible editor or tool. No helper scripts are required.
-
-Alternatively, the included scripts provide a CLI-based workflow using the standard [Dev Container CLI](https://github.com/devcontainers/cli).
-
-Because executable permissions are not currently preserved when applying a template, make the scripts executable once:
-
-```sh
-chmod +x .devcontainer/*.sh
-```
-
-Then:
-
-```sh
-# Create or start the container
-.devcontainer/up.sh
-
-# Recreate it from scratch
-.devcontainer/up.sh --recreate
-
-# Stop it
-.devcontainer/down.sh
-
-# Remove it
-.devcontainer/remove.sh
-```
-
-`up.sh` also registers the container as an SSH target. Generated entries are kept under `~/.config/mise-devcontainers/ssh/`, with a single `Include` added to `~/.ssh/config`.
-
-The target contains the distro, project name, and a short hash of the project path to avoid collisions:
-
-```text
-mise-devcontainer-archlinux-my-project-a1b2c3d4
-```
-
-This makes the same container available through regular `ssh`, Remote SSH editors, and other SSH-based tools without requiring native Dev Container integration.
-
-`down.sh` stops the container while keeping it available for later. `remove.sh` removes the container, its generated SSH target, and its temporary image.
+They follow the Dev Container specification and work with compatible editors and tools. Optional helper scripts provide the same lifecycle from the command line and expose the container over SSH for tools without native Dev Container support.
 
 ## Requirements
 
-For normal Dev Container usage:
-
 - Docker
+- an SSH agent exposed through `SSH_AUTH_SOCK`
+- at least one key loaded in the agent
 - a Dev Container-compatible editor or tool
 
-For the optional CLI/SSH workflow:
+Check your agent with:
 
-- [Dev Container CLI](https://github.com/devcontainers/cli)
-- Git
-- an SSH client
-- an editor with Remote SSH support, if desired
+```sh
+ssh-add -L
+```
+
+The agent is forwarded into the container for SSH authentication and Git commit signing. Private SSH keys are not mounted into the container.
+
+The optional CLI/SSH workflow additionally requires the [Dev Container CLI](https://github.com/devcontainers/cli), Git, and an SSH client.
 
 ## Templates
 
-Available flavors:
+Templates are published as OCI artifacts and available through the [Dev Container Templates](https://containers.dev/templates) collection.
+
+Available distros:
 
 ```text
 archlinux
@@ -69,7 +34,7 @@ fedora
 ubuntu
 ```
 
-Templates are published as OCI artifacts to GHCR and can be applied with the Dev Container CLI:
+They can also be applied directly with the Dev Container CLI:
 
 ```sh
 devcontainer templates apply \
@@ -77,26 +42,80 @@ devcontainer templates apply \
   -w .
 ```
 
-Replace `archlinux` with the desired flavor.
+Replace `archlinux` with the desired distro.
 
-The templates are also intended for discovery through the [Dev Container Templates](https://containers.dev/templates) collection.
+## Usage
+
+Use the generated `.devcontainer/` normally with any compatible Dev Container editor or tool.
+
+### CLI and SSH
+
+The templates also include helper scripts for managing the container directly.
+
+Because executable permissions are not preserved when applying a template, make them executable once:
+
+```sh
+chmod +x .devcontainer/*.sh
+```
+
+Then:
+
+```sh
+# Create or start
+.devcontainer/up.sh
+
+# Recreate
+.devcontainer/up.sh --recreate
+
+# Stop
+.devcontainer/down.sh
+
+# Remove
+.devcontainer/remove.sh
+```
+
+`up.sh` also registers the container as an SSH target. Entries are stored under `~/.config/mise-devcontainers/ssh/`, with a single `Include` added to `~/.ssh/config`.
+
+Targets include the distro, project name, and a short hash of the project path:
+
+```text
+mise-devcontainer-archlinux-my-project-a1b2c3d4
+```
+
+The container can then be used through regular SSH, Remote SSH editors, and other SSH-based tools.
+
+`down.sh` keeps the container available for later. `remove.sh` removes the container, generated SSH target, and temporary image.
+
+## Git
+
+Git includes system-wide defaults and uses the forwarded SSH agent for commit signing.
+
+Configure your identity inside the container:
+
+```sh
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+Git will refuse to commit until these are set.
+
+If multiple keys are loaded in your agent, set `user.signingKey` to select a specific signing key.
 
 ## What's included
 
-All flavors provide:
+All distros provide:
 
 - [mise](https://mise.jdx.dev/)
 - Docker-in-Docker
 - SSH
 - Fish
-- Git
+- Git with system-wide defaults and SSH signing
 - SSH agent forwarding
-- host Git configuration and signing key
 - non-root `dev` user with sudo
 - common CLI tools managed by mise
 - projects mounted under `/code/<project>`
 
-Project-specific runtimes and tools remain with the project and can be declared normally through mise:
+Project-specific runtimes and tools remain with the project:
 
 ```toml
 [tools]
@@ -104,50 +123,15 @@ node = "26"
 pnpm = "11"
 ```
 
-## Flavors
+## Distros
 
-### Arch Linux
-
-Rolling release with up-to-date system packages.
-
-**Image:** `ghcr.io/mkvlrn/mise-devcontainer-archlinux`
-
-### Debian
-
-Debian Trixie slim, with a smaller and more conservative base and broad glibc compatibility.
-
-**Image:** `ghcr.io/mkvlrn/mise-devcontainer-debian`
-
-### Fedora
-
-Current Fedora rawhide release with a modern userspace and RPM/DNF package ecosystem.
-
-**Image:** `ghcr.io/mkvlrn/mise-devcontainer-fedora`
-
-### Ubuntu
-
-Current Ubuntu LTS release.
-
-**Image:** `ghcr.io/mkvlrn/mise-devcontainer-ubuntu`
+| Distro     | Base        | Image                                        |
+| ---------- | ----------- | -------------------------------------------- |
+| Arch Linux | Rolling     | `ghcr.io/mkvlrn/mise-devcontainer-archlinux` |
+| Debian     | Trixie slim | `ghcr.io/mkvlrn/mise-devcontainer-debian`    |
+| Fedora     | Rawhide     | `ghcr.io/mkvlrn/mise-devcontainer-fedora`    |
+| Ubuntu     | Current LTS | `ghcr.io/mkvlrn/mise-devcontainer-ubuntu`    |
 
 ## Publishing
 
-CI detects affected distributions and builds candidate images only for those distributions. Each candidate goes through template creation and an actual Dev Container test before being promoted.
-
-The resulting flow is:
-
-```text
-detect changes
-    ↓
-build candidate image
-    ↓
-create template
-    ↓
-test template
-    ↓
-promote image
-    ↓
-publish template
-```
-
-Published templates reference the image that passed the corresponding test.
+CI builds only affected distros. Each candidate image is used to create and test its actual Dev Container template before the image is promoted and the template published, ensuring published templates reference the image that passed testing.

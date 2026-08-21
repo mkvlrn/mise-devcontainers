@@ -1,0 +1,25 @@
+[user]
+useConfigOnly = true
+[init]
+defaultBranch = main
+[core]
+autocrlf = false
+safecrlf = false
+eol = lf
+excludesFile = "~/.gitignore_global"
+[push]
+followTags = true
+[pull]
+rebase = false
+[gpg]
+format = ssh
+[gpg "ssh"]
+defaultKeyCommand = ssh-add -L
+[commit]
+gpgsign = true
+[alias]
+k = !git add --all && git commit -m
+s = !git status -s
+l = !git log --pretty=format:'%C(blue)%h%C(red)%d %C(white)%s - %C(cyan)%cn, %C(green)%cr'
+a = !git add --all && git commit --amend --no-edit -m
+t = !git log --graph --decorate --abbrev-commit --pretty=format:'%C(yellow)%h%Creset %C(magenta)%ad%Creset%C(auto)%d%Creset %s %C(cyan)[%an]%Creset' --date=short
