@@ -6,20 +6,30 @@ They follow the Dev Container specification and work with compatible editors and
 
 ## Requirements
 
-- Docker
+For normal Dev Container usage:
+
+- Docker or a compatible container runtime
+- a Dev Container-compatible editor or tool
 - an SSH agent exposed through `SSH_AUTH_SOCK`
 - at least one key loaded in the agent
-- a Dev Container-compatible editor or tool
 
-Check your agent with:
+Check the agent with:
 
 ```sh
 ssh-add -L
 ```
 
-The agent is forwarded into the container for SSH authentication and Git commit signing. Private SSH keys are not mounted into the container.
+The agent is forwarded into the container for SSH authentication and Git commit signing. Private SSH keys are never mounted into the container.
 
-The optional CLI/SSH workflow additionally requires the [Dev Container CLI](https://github.com/devcontainers/cli), Git, and an SSH client.
+### Helper scripts
+
+The included `up.sh`, `down.sh`, and `remove.sh` provide the standalone CLI/SSH workflow and additionally require:
+
+- [Dev Container CLI](https://github.com/devcontainers/cli)
+- Git
+- an SSH client
+
+Remote SSH support in your editor is optional, but is the intended way to connect when using this workflow.
 
 ## Templates
 

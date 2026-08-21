@@ -81,7 +81,7 @@ else
   )"
 fi
 
-printf '%s\n' "$OUTPUT"
+# printf '%s\n' "$OUTPUT"
 
 # The final CLI result contains the Docker container ID.
 CONTAINER_ID="$(
