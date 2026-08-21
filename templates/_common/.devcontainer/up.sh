@@ -120,7 +120,7 @@ Host $SSH_TARGET
     User dev
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
-Match host $SSH_TARGET command ""
+Match host $SSH_TARGET exec "test -t 0"
     RemoteCommand cd /code/$PROJECT && exec "\$SHELL" -l
     RequestTTY force
 EOF
