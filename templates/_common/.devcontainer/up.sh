@@ -120,9 +120,8 @@ Host $SSH_TARGET
     User dev
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
-Match host $SSH_TARGET exec "test -t 0"
-    RemoteCommand cd /code/$PROJECT && exec "\$SHELL" -l
-    RequestTTY force
+    SetEnv MISE_DEVCONTAINER=1
+    SendEnv MISE_GITHUB_TOKEN
 EOF
 
 # -----------------------------------------------------------------------------

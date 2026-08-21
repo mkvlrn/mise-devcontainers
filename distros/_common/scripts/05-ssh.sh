@@ -15,4 +15,5 @@ PermitEmptyPasswords yes
 AllowUsers dev
 UsePAM no
 PermitUserEnvironment yes
+AcceptEnv MISE_DEVCONTAINER MISE_GITHUB_TOKEN
 EOF
