@@ -51,6 +51,7 @@ export const envSchema = z.object({
   INPUT_DISTRO: z
     .enum(["all", ...distroList])
     .or(z.literal(""))
-    .transform((value) => value || undefined),
+    .transform((value) => value || undefined)
+    .optional(),
   SSH_AUTH_SOCK: z.string().optional(),
 });
