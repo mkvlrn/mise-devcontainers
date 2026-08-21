@@ -70,18 +70,18 @@ if [ "$RECREATE" = true ]; then
   OUTPUT="$(
     devcontainer up \
       --workspace-folder "$ROOT" \
-      --remove-existing-container
+      --remove-existing-container |
+      tee /dev/stderr
   )"
 else
   echo "🚀 Creating or starting dev container..."
 
   OUTPUT="$(
     devcontainer up \
-      --workspace-folder "$ROOT"
+      --workspace-folder "$ROOT" |
+      tee /dev/stderr
   )"
 fi
-
-# printf '%s\n' "$OUTPUT"
 
 # The final CLI result contains the Docker container ID.
 CONTAINER_ID="$(

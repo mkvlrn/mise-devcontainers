@@ -14,4 +14,5 @@ PasswordAuthentication yes
 PermitEmptyPasswords yes
 AllowUsers dev
 UsePAM no
+PermitUserEnvironment yes
 EOF

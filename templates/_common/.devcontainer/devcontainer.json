@@ -6,18 +6,13 @@
   "updateRemoteUserUID": true,
   "workspaceFolder": "/code/${localWorkspaceFolderBasename}",
   "workspaceMount": "source=${localWorkspaceFolder},target=/code/${localWorkspaceFolderBasename},type=bind",
-  "mounts": [
-    // ssh agent forwarding
-    "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
-  ],
+  "mounts": ["source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"],
   "runArgs": ["--privileged", "-p", "127.0.0.1::22"],
   "overrideCommand": false,
   "postCreateCommand": "post-create.sh",
   "postStartCommand": "post-start.sh",
   "containerEnv": {
-    "SSH_AUTH_SOCK": "/ssh-agent"
-  },
-  "remoteEnv": {
+    "SSH_AUTH_SOCK": "/ssh-agent",
     "MISE_DEVCONTAINER": "1",
     "MISE_GITHUB_TOKEN": "${localEnv:MISE_GITHUB_TOKEN}"
   }
