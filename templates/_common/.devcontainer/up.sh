@@ -120,6 +120,8 @@ Host $SSH_TARGET
     User dev
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
+    RemoteCommand cd /code/$PROJECT && exec "\$SHELL" -l
+    RequestTTY force
 EOF
 
 # -----------------------------------------------------------------------------

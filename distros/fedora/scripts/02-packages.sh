@@ -18,10 +18,8 @@ dnf install -y \
   sudo \
   tzdata \
   iptables-nft \
-  runc
-
-# disable PAM for sshd
-sed -i 's/^UsePAM yes$/UsePAM no/' /etc/ssh/sshd_config.d/50-redhat.conf
+  runc \
+  libatomic
 
 # prioritize nft iptables for dockerd
 alternatives --set iptables /usr/bin/iptables-nft
