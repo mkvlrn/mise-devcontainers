@@ -2,9 +2,11 @@ import { errResult, okResult, type Result, type ResultAsync } from "@mkvlrn/resu
 import { z } from "zod";
 import { parseEnv } from "./misc/lib";
 
-const eventSchema = z.object({
+const pullRequestEventSchema = z.object({
   pull_request: z.object({
-    number: z.number(),
+    head: z.object({
+      sha: z.string(),
+    }),
   }),
 });
 
@@ -12,11 +14,6 @@ const workflowRunsSchema = z.object({
   workflow_runs: z.array(
     z.object({
       id: z.number(),
-      pull_requests: z.array(
-        z.object({
-          number: z.number(),
-        }),
-      ),
     }),
   ),
 });
@@ -28,24 +25,22 @@ export async function run(_: string[]): ResultAsync<true, Error> {
     return errResult(new Error("error loading env vars", { cause: parsedEnv.error }));
   }
 
-  const pullRequestNumber = await getPullRequestNumber(parsedEnv.value.GITHUB_EVENT_PATH);
-
-  if (pullRequestNumber.isError) {
-    return errResult(pullRequestNumber.error);
+  const env = parsedEnv.value;
+  const headSha = await getHeadSha(env.GITHUB_EVENT_PATH);
+  if (headSha.isError) {
+    return errResult(headSha.error);
   }
 
   const validationRunId = await findValidationRun(
-    parsedEnv.value.GITHUB_REPOSITORY,
-    parsedEnv.value.GHCR_TOKEN,
-    pullRequestNumber.value,
+    env.GITHUB_REPOSITORY,
+    env.GHCR_TOKEN,
+    headSha.value,
   );
-
   if (validationRunId.isError) {
     return errResult(validationRunId.error);
   }
 
-  const writeOutput = writeRunId(parsedEnv.value.GITHUB_OUTPUT, validationRunId.value);
-
+  const writeOutput = writeRunId(env.GITHUB_OUTPUT, validationRunId.value);
   if (writeOutput.isError) {
     return errResult(writeOutput.error);
   }
@@ -53,11 +48,11 @@ export async function run(_: string[]): ResultAsync<true, Error> {
   return okResult(true);
 }
 
-async function getPullRequestNumber(eventPath: string): ResultAsync<number, Error> {
+async function getHeadSha(eventPath: string): ResultAsync<string, Error> {
   try {
-    const event = eventSchema.parse(await Bun.file(eventPath).json());
+    const event = pullRequestEventSchema.parse(await Bun.file(eventPath).json());
 
-    return okResult(event.pull_request.number);
+    return okResult(event.pull_request.head.sha);
   } catch (err) {
     return errResult(new Error("could not parse pull request event", { cause: err }));
   }
@@ -66,16 +61,14 @@ async function getPullRequestNumber(eventPath: string): ResultAsync<number, Erro
 async function findValidationRun(
   repository: string,
   token: string,
-  pullRequestNumber: number,
+  headSha: string,
 ): ResultAsync<number, Error> {
-  const response = await getValidationRuns(repository, token);
-
+  const response = await getValidationRuns(repository, token, headSha);
   if (response.isError) {
     return errResult(response.error);
   }
 
   const parsedRuns = workflowRunsSchema.safeParse(response.value);
-
   if (parsedRuns.error) {
     return errResult(
       new Error("could not parse validation runs", {
@@ -84,25 +77,23 @@ async function findValidationRun(
     );
   }
 
-  const validationRun = parsedRuns.data.workflow_runs.find((workflowRun) =>
-    workflowRun.pull_requests.some((pullRequest) => pullRequest.number === pullRequestNumber),
-  );
-
+  const [validationRun] = parsedRuns.data.workflow_runs;
   if (!validationRun) {
-    return errResult(
-      new Error(`could not find successful validation for PR #${pullRequestNumber}`),
-    );
+    return errResult(new Error(`could not find successful validation for head SHA ${headSha}`));
   }
 
   return okResult(validationRun.id);
 }
 
-async function getValidationRuns(repository: string, token: string): ResultAsync<unknown, Error> {
+async function getValidationRuns(
+  repository: string,
+  token: string,
+  headSha: string,
+): ResultAsync<unknown, Error> {
   try {
-    const response = await fetch(getValidationRunsUrl(repository), {
+    const response = await fetch(getValidationRunsUrl(repository, headSha), {
       headers: getGithubHeaders(token),
     });
-
     if (!response.ok) {
       return errResult(
         new Error(`could not list validation runs: ${response.status} ${response.statusText}`),
@@ -115,14 +106,14 @@ async function getValidationRuns(repository: string, token: string): ResultAsync
   }
 }
 
-function getValidationRunsUrl(repository: string): URL {
+function getValidationRunsUrl(repository: string, headSha: string): URL {
   const url = new URL(
     `https://api.github.com/repos/${repository}/actions/workflows/validate.yml/runs`,
   );
-
   url.searchParams.set("event", "pull_request");
   url.searchParams.set("status", "success");
-  url.searchParams.set("per_page", "100");
+  url.searchParams.set("head_sha", headSha);
+  url.searchParams.set("per_page", "1");
 
   return url;
 }
@@ -138,7 +129,6 @@ function getGithubHeaders(token: string): Bun.HeadersInit {
 function writeRunId(outputPath: string, runId: number): Result<true, Error> {
   try {
     const githubOutputFile = Bun.file(outputPath).writer();
-
     githubOutputFile.write(`run_id=${runId}\n`);
     githubOutputFile.end();
 
