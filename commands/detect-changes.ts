@@ -76,7 +76,10 @@ function getChangedDistros(changedFiles: string[]): string[] {
 
 function changesAffectAllDistros(changedFiles: string[]): boolean {
   return changedFiles.some(
-    (file) => file.startsWith("distros/_common/") || file.startsWith("templates/_common/"),
+    (file) =>
+      file.startsWith("distros/_common/") ||
+      file.startsWith("templates/_common/") ||
+      file === ".rebuild-all",
   );
 }
 
