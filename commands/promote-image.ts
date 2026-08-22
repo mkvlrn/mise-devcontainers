@@ -10,7 +10,7 @@ export async function run(args: string[]): ResultAsync<true, Error> {
     args,
   );
   if (parse.isError) {
-    return errResult(new Error("could not parse template creation args", { cause: parse.error }));
+    return errResult(new Error("could not parse image promotion args", { cause: parse.error }));
   }
 
   const { distro, candidateTag, imageVersion } = parse.value;

@@ -1,14 +1,7 @@
-import { errResult, okResult, type Result, type ResultAsync } from "@mkvlrn/result";
+import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
 import { z } from "zod";
-import { parseEnv } from "./misc/lib";
-
-const pullRequestEventSchema = z.object({
-  pull_request: z.object({
-    head: z.object({
-      sha: z.string(),
-    }),
-  }),
-});
+import { parseEnv, writeGithubOutputs } from "./misc/lib";
+import { pullRequestEventSchema, restoreValidationEnvSchema } from "./misc/schemas";
 
 const workflowRunsSchema = z.object({
   workflow_runs: z.array(
@@ -19,8 +12,7 @@ const workflowRunsSchema = z.object({
 });
 
 export async function run(_: string[]): ResultAsync<true, Error> {
-  const parsedEnv = parseEnv();
-
+  const parsedEnv = parseEnv(restoreValidationEnvSchema);
   if (parsedEnv.isError) {
     return errResult(new Error("error loading env vars", { cause: parsedEnv.error }));
   }
@@ -33,19 +25,16 @@ export async function run(_: string[]): ResultAsync<true, Error> {
 
   const validationRunId = await findValidationRun(
     env.GITHUB_REPOSITORY,
-    env.GHCR_TOKEN,
+    env.GITHUB_TOKEN,
     headSha.value,
   );
   if (validationRunId.isError) {
     return errResult(validationRunId.error);
   }
 
-  const writeOutput = writeRunId(env.GITHUB_OUTPUT, validationRunId.value);
-  if (writeOutput.isError) {
-    return errResult(writeOutput.error);
-  }
-
-  return okResult(true);
+  return writeGithubOutputs(env.GITHUB_OUTPUT, {
+    run_id: validationRunId.value,
+  });
 }
 
 async function getHeadSha(eventPath: string): ResultAsync<string, Error> {
@@ -110,6 +99,7 @@ function getValidationRunsUrl(repository: string, headSha: string): URL {
   const url = new URL(
     `https://api.github.com/repos/${repository}/actions/workflows/validate.yml/runs`,
   );
+
   url.searchParams.set("event", "pull_request");
   url.searchParams.set("status", "success");
   url.searchParams.set("head_sha", headSha);
@@ -124,16 +114,4 @@ function getGithubHeaders(token: string): Bun.HeadersInit {
     Authorization: `Bearer ${token}`,
     "X-GitHub-Api-Version": "2026-03-10",
   };
-}
-
-function writeRunId(outputPath: string, runId: number): Result<true, Error> {
-  try {
-    const githubOutputFile = Bun.file(outputPath).writer();
-    githubOutputFile.write(`run_id=${runId}\n`);
-    githubOutputFile.end();
-
-    return okResult(true);
-  } catch (err) {
-    return errResult(new Error("could not write validation run id", { cause: err }));
-  }
 }

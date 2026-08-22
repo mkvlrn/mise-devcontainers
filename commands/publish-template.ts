@@ -1,14 +1,15 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
-import { $ } from "bun";
 import { dirExists, parseArgs, pathFinder } from "./misc/lib";
 import { distroTagSchema } from "./misc/schemas";
 
 export async function run(args: string[]): ResultAsync<true, Error> {
   const parse = parseArgs({ distro: "string", candidateTag: "string" }, distroTagSchema, args);
   if (parse.isError) {
-    return errResult(new Error("could not parse template creation args", { cause: parse.error }));
+    return errResult(
+      new Error("could not parse template publication args", { cause: parse.error }),
+    );
   }
 
   const { distro, candidateTag } = parse.value;
@@ -46,7 +47,7 @@ export async function run(args: string[]): ResultAsync<true, Error> {
 }
 
 async function getImageDigest(ref: string): Promise<string> {
-  const output = await $`docker buildx imagetools inspect ${ref}`.text();
+  const output = await Bun.$`docker buildx imagetools inspect ${ref}`.text();
   // biome-ignore lint/performance/useTopLevelRegex: single use
   const digest = output.match(/^Digest:\s+(sha256:[a-f0-9]+)$/m)?.[1];
 
@@ -80,12 +81,12 @@ async function preparePublication(
   currentRef: string,
   currentDigest: string,
   templateOutputDir: string,
-) {
+): ResultAsync<true, Error> {
   try {
     const containerConfig = await Bun.file(containerConfigPath).json();
     containerConfig.image = `${currentRef}@${currentDigest}`;
-    await Bun.write(containerConfigPath, `${JSON.stringify(containerConfig, null, 2)}\n`);
 
+    await Bun.write(containerConfigPath, `${JSON.stringify(containerConfig, null, 2)}\n`);
     await fs.rm(pathFinder.publishCollectionDir(), { recursive: true, force: true });
     await fs.mkdir(pathFinder.publishCollectionDir(), { recursive: true });
     await fs.cp(templateOutputDir, pathFinder.publishCollectionDir(), {
@@ -101,7 +102,7 @@ async function preparePublication(
 
 async function publishTemplate(): ResultAsync<true, Error> {
   try {
-    await $`devcontainer templates publish \
+    await Bun.$`devcontainer templates publish \
         --registry ghcr.io \
         --namespace mkvlrn/mise-devcontainers \
         ${pathFinder.publishCollectionDir()}`;

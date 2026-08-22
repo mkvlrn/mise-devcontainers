@@ -1,17 +1,14 @@
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
-import process from "node:process";
 import url from "node:url";
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
-import { $ } from "bun";
 import { cleanup } from "./misc/cleanup";
 import { dirExists, parseArgs, pathFinder } from "./misc/lib";
 import { distroSchema } from "./misc/schemas";
+import { createRemote, setupHostEnvironment } from "./misc/test-host";
 
 export async function run(args: string[]): ResultAsync<true, Error> {
   const result = await runWithCleanup(args);
-
   const cleanupResult = await cleanup.run();
   if (cleanupResult.isError) {
     return cleanupResult;
@@ -23,7 +20,7 @@ export async function run(args: string[]): ResultAsync<true, Error> {
 async function runWithCleanup(args: string[]): ResultAsync<true, Error> {
   const parse = parseArgs({ distro: "string" }, distroSchema, args);
   if (parse.isError) {
-    return errResult(new Error("could not parse image build args", { cause: parse.error }));
+    return errResult(new Error("could not parse template test args", { cause: parse.error }));
   }
 
   const { distro } = parse.value;
@@ -58,48 +55,6 @@ async function runWithCleanup(args: string[]): ResultAsync<true, Error> {
   return okResult(true);
 }
 
-async function setupHostEnvironment(): ResultAsync<true, Error> {
-  try {
-    await fs.mkdir(path.join(os.homedir(), ".ssh"), { recursive: true });
-
-    const signingKey = path.join(os.homedir(), ".ssh", "id_ed25519_signing");
-
-    if (!(await Bun.file(signingKey).exists())) {
-      await $`ssh-keygen -q -t ed25519 -N "" -f ${signingKey}`;
-
-      cleanup.defer(() => fs.unlink(signingKey));
-      cleanup.defer(() => fs.unlink(`${signingKey}.pub`));
-    }
-
-    if (!process.env["SSH_AUTH_SOCK"]) {
-      const output = await $`ssh-agent -s`.text();
-
-      // biome-ignore lint/performance/useTopLevelRegex: single use
-      const authSock = output.match(/SSH_AUTH_SOCK=([^;]+)/)?.[1];
-
-      // biome-ignore lint/performance/useTopLevelRegex: single use
-      const agentPid = output.match(/SSH_AGENT_PID=([0-9]+)/)?.[1];
-
-      if (!(authSock && agentPid)) {
-        throw new Error("could not start ssh agent for testing");
-      }
-
-      cleanup.defer(async () => {
-        await $`kill ${agentPid}`.quiet();
-      });
-
-      process.env["SSH_AUTH_SOCK"] = authSock;
-      process.env["SSH_AGENT_PID"] = agentPid;
-    }
-
-    await $`ssh-add ${signingKey}`;
-
-    return okResult(true);
-  } catch (err) {
-    return errResult(new Error("could not setup host environment for testing", { cause: err }));
-  }
-}
-
 async function setupTestExecution(
   testExecutionDir: string,
   templateOutputDir: string,
@@ -107,14 +62,10 @@ async function setupTestExecution(
   try {
     await fs.rm(testExecutionDir, { recursive: true, force: true });
     await fs.mkdir(testExecutionDir, { recursive: true });
-
     await fs.cp(
       path.join(templateOutputDir, ".devcontainer"),
       path.join(testExecutionDir, ".devcontainer"),
-      {
-        recursive: true,
-        force: true,
-      },
+      { recursive: true, force: true },
     );
 
     for await (const script of ["up.sh", "shell.sh", "down.sh", "remove.sh"]) {
@@ -130,10 +81,10 @@ async function setupTestExecution(
 async function runTests(testExecutionDir: string, testSuiteFile: string): ResultAsync<true, Error> {
   try {
     cleanup.defer(async () => {
-      await $`${testExecutionDir}/.devcontainer/remove.sh`;
+      await Bun.$`${testExecutionDir}/.devcontainer/remove.sh`;
     });
 
-    await $`${testExecutionDir}/.devcontainer/up.sh`;
+    await Bun.$`${testExecutionDir}/.devcontainer/up.sh`;
 
     const remote = createRemote(testExecutionDir);
     const testModule = await import(url.pathToFileURL(testSuiteFile).href);
@@ -144,18 +95,4 @@ async function runTests(testExecutionDir: string, testSuiteFile: string): Result
   } catch (err) {
     return errResult(new Error("could not run template tests", { cause: err }));
   }
-}
-
-function createRemote(testExecutionDir: string) {
-  const shell = path.join(testExecutionDir, ".devcontainer", "shell.sh");
-
-  return async (command: string) => {
-    const result = await $`${shell} sh -lc ${command}`.quiet().nothrow();
-
-    return {
-      exitCode: result.exitCode,
-      stdout: result.stdout.toString(),
-      stderr: result.stderr.toString(),
-    };
-  };
 }
