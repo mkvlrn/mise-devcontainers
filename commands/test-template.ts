@@ -150,7 +150,7 @@ function createRemote(testExecutionDir: string) {
   const shell = path.join(testExecutionDir, ".devcontainer", "shell.sh");
 
   return async (command: string) => {
-    const result = await $`${shell} ${command}`.quiet().nothrow();
+    const result = await $`${shell} sh -lc ${command}`.quiet().nothrow();
 
     return {
       exitCode: result.exitCode,
