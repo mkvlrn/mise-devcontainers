@@ -1,12 +1,14 @@
 import process from "node:process";
 import type { Result, ResultAsync } from "@mkvlrn/result";
-import bun from "bun";
 import { run as buildImage } from "./commands/build-image";
 import { run as createTemplate } from "./commands/create-template";
 import { run as detectChanges } from "./commands/detect-changes";
 import { run as loginGhcr } from "./commands/login-ghcr";
 import { run as promoteImage } from "./commands/promote-image";
 import { run as publishTemplate } from "./commands/publish-template";
+import { run as releaseInfo } from "./commands/release-info";
+import { run as restoreValidation } from "./commands/restore-validation";
+import { run as saveValidation } from "./commands/save-validation";
 import { run as testTemplate } from "./commands/test-template";
 
 export type RunResult = Result<true, Error> | ResultAsync<true, Error>;
@@ -18,11 +20,14 @@ const commands = {
   "build-image": buildImage,
   "create-template": createTemplate,
   "test-template": testTemplate,
+  "save-validation": saveValidation,
+  "restore-validation": restoreValidation,
+  "release-info": releaseInfo,
   "login-ghcr": loginGhcr,
   "promote-image": promoteImage,
   "publish-template": publishTemplate,
 } satisfies Record<string, Command>;
-const [command, ...args] = bun.argv.slice(2);
+const [command, ...args] = Bun.argv.slice(2);
 
 if (!command) {
   console.error("a command is needed");

@@ -1,0 +1,131 @@
+name: release
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+env:
+  GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GHCR_USERNAME: ${{ github.actor }}
+
+jobs:
+  restore-validation:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      run-id: ${{ steps.restore.outputs.run_id }}
+      distros: ${{ steps.info.outputs.distros }}
+      candidate-tag: ${{ steps.info.outputs.candidate_tag }}
+      image-version: ${{ steps.info.outputs.image_version }}
+    steps:
+      - name: setup checkout action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: setup bun action
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+
+      - name: install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: restore validation
+        id: restore
+        run: bun main.ts restore-validation
+
+      - name: download validation metadata
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: validation-metadata
+          path: .tmp/.validation-metadata
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.restore.outputs.run_id }}
+
+      - name: process release info
+        id: info
+        run: bun main.ts release-info
+
+  promote-image:
+    needs: restore-validation
+    if: needs.restore-validation.outputs.distros != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.restore-validation.outputs.distros) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: setup checkout action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: setup bun action
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+
+      - name: setup buildx action
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+
+      - name: install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: login to ghcr
+        run: bun main.ts login-ghcr
+
+      - name: promote image
+        run: |
+          bun main.ts promote-image \
+            --distro "${{ matrix.distro }}" \
+            --candidateTag "${{ needs.restore-validation.outputs.candidate-tag }}" \
+            --imageVersion "${{ needs.restore-validation.outputs.image-version }}"
+
+  publish-template:
+    needs:
+      - restore-validation
+      - promote-image
+    if: needs.restore-validation.outputs.distros != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.restore-validation.outputs.distros) }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+    steps:
+      - name: setup checkout action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: setup bun action
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+
+      - name: setup buildx action
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+
+      - name: install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: install dev container cli
+        run: npm install -g @devcontainers/cli
+
+      - name: login to ghcr
+        run: bun main.ts login-ghcr
+
+      - name: download tested template artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: template-${{ matrix.distro }}
+          path: .tmp/.publish-template-${{ matrix.distro }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ needs.restore-validation.outputs.run-id }}
+
+      - name: publish template
+        run: |
+          bun main.ts publish-template \
+            --distro "${{ matrix.distro }}" \
+            --candidateTag "${{ needs.restore-validation.outputs.candidate-tag }}"

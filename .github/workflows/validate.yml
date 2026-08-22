@@ -1,23 +1,13 @@
-name: ci
+name: validate
 
 on:
-  workflow_dispatch:
-    inputs:
-      distro:
-        description: Distro to build
-        required: true
-        type: choice
-        default: all
-        options:
-          - all
-          - alpine
-          - archlinux
-          - debian
-          - fedora
-          - ubuntu
   pull_request:
+    branches:
+      - main
     types:
-      - closed
+      - opened
+      - synchronize
+      - reopened
 
 env:
   GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -25,12 +15,6 @@ env:
 
 jobs:
   detect-changes:
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (
-        github.event.pull_request.merged == true &&
-        github.event.pull_request.user.login == 'renovate[bot]'
-      )
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -52,10 +36,24 @@ jobs:
 
       - name: detect changes
         id: changes
-        env:
-          INPUT_DISTRO: ${{ inputs.distro }}
+        run: bun main.ts detect-changes
+
+      - name: save validation metadata
         run: |
-          bun main.ts detect-changes
+          bun main.ts save-validation \
+            --distros '${{ steps.changes.outputs.distros }}' \
+            --candidateTag "${{ steps.changes.outputs.candidate_tag }}" \
+            --imageVersion "${{ steps.changes.outputs.image_version }}" \
+            --headSha "${{ github.event.pull_request.head.sha }}"
+
+      - name: upload validation metadata
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: validation-metadata
+          path: .tmp/.validation-metadata
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
 
   build-image:
     needs: detect-changes
@@ -128,7 +126,7 @@ jobs:
           path: .tmp/.publish-template-${{ matrix.distro }}
           if-no-files-found: error
           include-hidden-files: true
-          retention-days: 1
+          retention-days: 30
 
   test-template:
     needs:
@@ -167,83 +165,3 @@ jobs:
 
       - name: test template
         run: bun main.ts test-template --distro "${{ matrix.distro }}"
-
-  promote-image:
-    needs:
-      - detect-changes
-      - test-template
-    if: needs.detect-changes.outputs.distros != '[]'
-    strategy:
-      fail-fast: false
-      matrix:
-        distro: ${{ fromJSON(needs.detect-changes.outputs.distros) }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: setup checkout action
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: setup bun action
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-
-      - name: setup buildx action
-        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
-
-      - name: install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: login to ghcr
-        run: bun main.ts login-ghcr
-
-      - name: promote image
-        run: |
-          bun main.ts promote-image \
-            --distro "${{ matrix.distro }}" \
-            --candidateTag "${{ needs.detect-changes.outputs.candidate-tag }}" \
-            --imageVersion "${{ needs.detect-changes.outputs.image-version }}"
-
-  publish-template:
-    needs:
-      - detect-changes
-      - promote-image
-    if: needs.detect-changes.outputs.distros != '[]'
-    strategy:
-      fail-fast: false
-      matrix:
-        distro: ${{ fromJSON(needs.detect-changes.outputs.distros) }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: setup checkout action
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: setup bun action
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-
-      - name: setup buildx action
-        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
-
-      - name: install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: install dev container cli
-        run: npm install -g @devcontainers/cli
-
-      - name: login to ghcr
-        run: bun main.ts login-ghcr
-
-      - name: download tested template artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: template-${{ matrix.distro }}
-          path: .tmp/.publish-template-${{ matrix.distro }}
-
-      - name: publish template
-        run: |
-          bun main.ts publish-template \
-            --distro "${{ matrix.distro }}" \
-            --candidateTag "${{ needs.detect-changes.outputs.candidate-tag }}"

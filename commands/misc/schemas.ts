@@ -36,6 +36,13 @@ export const distroTagImageSchema = z.strictObject({
 
 export const distroTagSchema = distroTagImageSchema.omit({ imageVersion: true });
 
+export const validationMetadataSchema = z.strictObject({
+  distros: z.array(distroSchema.shape.distro),
+  candidateTag: distroTagCacheSchema.shape.candidateTag,
+  imageVersion: distroTagImageSchema.shape.imageVersion,
+  headSha: z.string(),
+});
+
 export const envSchema = z.object({
   GHCR_TOKEN: z.string(),
   GHCR_USERNAME: z.string(),
@@ -43,6 +50,7 @@ export const envSchema = z.object({
     .string()
     .optional()
     .transform((val) => val === "true" || val === "1"),
+  GITHUB_REPOSITORY: z.string(),
   GITHUB_RUN_ID: z.string(),
   GITHUB_RUN_ATTEMPT: z.coerce.number(),
   GITHUB_OUTPUT: z.string(),

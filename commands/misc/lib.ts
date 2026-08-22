@@ -67,6 +67,7 @@ export const pathFinder = {
   buildImageDir: (distro: string) => path.join(root, ".tmp", `.build-image-${distro}`),
   publishTemplateDir: (distro: string) => path.join(root, ".tmp", `.publish-template-${distro}`),
   testExecutionDir: (distro: string) => path.join(root, ".tmp", `.test-execution-${distro}`),
+  validationMetadataDir: () => path.join(root, ".tmp", ".validation-metadata"),
   publishCollectionDir: () => path.join(root, ".tmp", ".publish-collection"),
 } as const;
 
