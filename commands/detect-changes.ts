@@ -76,15 +76,7 @@ function getChangedDistros(changedFiles: string[]): string[] {
 
 function changesAffectAllDistros(changedFiles: string[]): boolean {
   return changedFiles.some(
-    (file) =>
-      file.startsWith("distros/_common/") ||
-      file.startsWith("templates/_common/") ||
-      file.startsWith("test/_common/") ||
-      file.startsWith("commands/") ||
-      file.startsWith(".github/workflows/") ||
-      file === "main.ts" ||
-      file === "package.json" ||
-      file === "bun.lock",
+    (file) => file.startsWith("distros/_common/") || file.startsWith("templates/_common/"),
   );
 }
 
@@ -93,7 +85,6 @@ function changesAffectDistro(changedFiles: string[], distro: string): boolean {
     (file) =>
       file.startsWith(`distros/${distro}/`) ||
       file.startsWith(`templates/${distro}/`) ||
-      file.startsWith(`test/${distro}/`),
   );
 }
 
