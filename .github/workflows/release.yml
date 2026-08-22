@@ -41,6 +41,8 @@ jobs:
 
       - name: restore validation
         id: restore
+        env:
+          INPUT_HEAD_SHA: ${{ inputs.head-sha }}
         run: bun main.ts restore-validation
 
       - name: download validation metadata

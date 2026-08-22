@@ -61,4 +61,5 @@ export const envSchema = z.object({
   BUILD_IMAGE_RESULT: z.enum(["success", "failure", "cancelled", "skipped"]).optional(),
   CREATE_TEMPLATE_RESULT: z.enum(["success", "failure", "cancelled", "skipped"]).optional(),
   TEST_TEMPLATE_RESULT: z.enum(["success", "failure", "cancelled", "skipped"]).optional(),
+  INPUT_HEAD_SHA: z.string().optional(),
 });
