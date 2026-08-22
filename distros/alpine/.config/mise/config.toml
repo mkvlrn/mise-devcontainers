@@ -1,0 +1,19 @@
+[tools]
+"github:o2sh/onefetch" = "2.27.1"
+eza = "0.23.5"
+fastfetch = "2.67.1"
+github-cli = "2.98.0"
+glab = "1.112.0"
+jq = "1.8.2"
+usage = "5.1.0"
+oh-my-posh = '30.6.5'
+
+[settings]
+all_compile = false
+libc = "musl"
+disable_backends = ["asdf"]
+use_versions_host = false
+fetch_remote_versions_cache = "1h"
+color_theme = "catppuccin"
+minimum_release_age = "1d"
+trusted_config_paths = ["/code"]
