@@ -165,3 +165,20 @@ jobs:
 
       - name: test template
         run: bun main.ts test-template --distro "${{ matrix.distro }}"
+
+  validation:
+    needs:
+      - detect-changes
+      - build-image
+      - create-template
+      - test-template
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: check validation result
+        env:
+          DETECT_CHANGES_RESULT: ${{ needs.detect-changes.result }}
+          BUILD_IMAGE_RESULT: ${{ needs.build-image.result }}
+          CREATE_TEMPLATE_RESULT: ${{ needs.create-template.result }}
+          TEST_TEMPLATE_RESULT: ${{ needs.test-template.result }}
+        run: bun main.ts validation-result

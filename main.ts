@@ -10,6 +10,7 @@ import { run as releaseInfo } from "./commands/release-info";
 import { run as restoreValidation } from "./commands/restore-validation";
 import { run as saveValidation } from "./commands/save-validation";
 import { run as testTemplate } from "./commands/test-template";
+import { run as validationResult } from "./commands/validation-result";
 
 export type RunResult = Result<true, Error> | ResultAsync<true, Error>;
 type Command = (args: string[]) => RunResult;
@@ -22,6 +23,7 @@ const commands = {
   "test-template": testTemplate,
   "save-validation": saveValidation,
   "restore-validation": restoreValidation,
+  "validation-result": validationResult,
   "release-info": releaseInfo,
   "login-ghcr": loginGhcr,
   "promote-image": promoteImage,
