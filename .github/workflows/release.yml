@@ -2,6 +2,11 @@ name: release
 
 on:
   workflow_dispatch:
+    inputs:
+      head-sha:
+        description: Validated PR head SHA
+        required: true
+        type: string
   pull_request:
     branches:
       - main
