@@ -6,7 +6,7 @@ import { z } from "zod";
 import { parseEnv, pathFinder } from "./misc/lib";
 import { validationMetadataSchema } from "./misc/schemas";
 
-const eventSchema = z.object({
+const pullRequestEventSchema = z.object({
   pull_request: z.object({
     head: z.object({
       sha: z.string(),
@@ -23,21 +23,79 @@ export async function run(_: string[]): ResultAsync<true, Error> {
 
   const env = parsedEnv.value;
 
-  try {
-    const event = eventSchema.parse(await Bun.file(env.GITHUB_EVENT_PATH).json());
+  const headSha = await getHeadSha(
+    env.GITHUB_EVENT_NAME,
+    env.GITHUB_EVENT_PATH,
+    env.INPUT_HEAD_SHA,
+  );
 
-    const metadataFile = path.join(pathFinder.validationMetadataDir(), "metadata.json");
-    const metadata = validationMetadataSchema.parse(await Bun.file(metadataFile).json());
+  if (headSha.isError) {
+    return errResult(headSha.error);
+  }
 
-    if (metadata.headSha !== event.pull_request.head.sha) {
-      return errResult(
-        new Error(
-          `successful validation was for ${metadata.headSha}, but merged PR head is ${event.pull_request.head.sha}`,
-        ),
-      );
+  const metadata = await getValidationMetadata();
+
+  if (metadata.isError) {
+    return errResult(metadata.error);
+  }
+
+  if (metadata.value.headSha !== headSha.value) {
+    return errResult(
+      new Error(
+        `successful validation was for ${metadata.value.headSha}, but release head is ${headSha.value}`,
+      ),
+    );
+  }
+
+  const writeOutput = writeReleaseInfo(env.GITHUB_OUTPUT, metadata.value);
+
+  if (writeOutput.isError) {
+    return errResult(writeOutput.error);
+  }
+
+  return okResult(true);
+}
+
+async function getHeadSha(
+  eventName: string,
+  eventPath: string,
+  inputHeadSha?: string,
+): ResultAsync<string, Error> {
+  if (eventName === "workflow_dispatch") {
+    if (!inputHeadSha) {
+      return errResult(new Error("head SHA is required for manual release"));
     }
 
-    const githubOutputFile = Bun.file(env.GITHUB_OUTPUT).writer();
+    return okResult(inputHeadSha);
+  }
+
+  try {
+    const event = pullRequestEventSchema.parse(await Bun.file(eventPath).json());
+
+    return okResult(event.pull_request.head.sha);
+  } catch (err) {
+    return errResult(new Error("could not parse pull request event", { cause: err }));
+  }
+}
+
+async function getValidationMetadata(): ResultAsync<
+  z.infer<typeof validationMetadataSchema>,
+  Error
+> {
+  try {
+    const metadataFile = path.join(pathFinder.validationMetadataDir(), "metadata.json");
+
+    const metadata = validationMetadataSchema.parse(await Bun.file(metadataFile).json());
+
+    return okResult(metadata);
+  } catch (err) {
+    return errResult(new Error("could not read validation metadata", { cause: err }));
+  }
+}
+
+function writeReleaseInfo(outputPath: string, metadata: z.infer<typeof validationMetadataSchema>) {
+  try {
+    const githubOutputFile = Bun.file(outputPath).writer();
 
     githubOutputFile.write(`distros=${JSON.stringify(metadata.distros)}\n`);
     githubOutputFile.write(`candidate_tag=${metadata.candidateTag}\n`);
@@ -46,6 +104,6 @@ export async function run(_: string[]): ResultAsync<true, Error> {
 
     return okResult(true);
   } catch (err) {
-    return errResult(new Error("could not process release info", { cause: err }));
+    return errResult(new Error("could not write release info", { cause: err }));
   }
 }
