@@ -89,7 +89,17 @@ async function buildImage(
   dockerArgs.push(outputDir);
 
   try {
-    await $`docker buildx build ${dockerArgs} > ${Bun.stdout}`;
+    const proc = Bun.spawn(["docker", "buildx", "build", ...dockerArgs], {
+      stdin: "inherit",
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+
+    const exitCode = await proc.exited;
+
+    if (exitCode !== 0) {
+      throw new Error(`docker build failed with exit code ${exitCode}`);
+    }
 
     return okResult(true);
   } catch (err) {

@@ -1,6 +1,6 @@
 # mise-devcontainers
 
-Ready-to-use [Dev Containers](https://containers.dev/) built around [mise](https://mise.jdx.dev/), available for Arch Linux, Debian, Fedora, and Ubuntu.
+Ready-to-use [Dev Containers](https://containers.dev/) built around [mise](https://mise.jdx.dev/), available for Alpine, Arch Linux, Debian, Fedora, and Ubuntu.
 
 They follow the Dev Container specification and work with compatible editors, tools, or the Dev Container CLI.
 
@@ -24,6 +24,7 @@ The included helper scripts additionally require the [Dev Container CLI](https:/
 
 Templates are published as OCI artifacts and available through the [Dev Container Templates](https://containers.dev/templates) collection:
 
+- `alpine`
 - `archlinux`
 - `debian`
 - `fedora`
@@ -106,6 +107,7 @@ pnpm = "11"
 
 | Distro     | Base        | Image                                        |
 | ---------- | ----------- | -------------------------------------------- |
+| Alpine     | 3.24        | `ghcr.io/mkvlrn/mise-devcontainer-alpine`    |
 | Arch Linux | Rolling     | `ghcr.io/mkvlrn/mise-devcontainer-archlinux` |
 | Debian     | Trixie slim | `ghcr.io/mkvlrn/mise-devcontainer-debian`    |
 | Fedora     | Rawhide     | `ghcr.io/mkvlrn/mise-devcontainer-fedora`    |

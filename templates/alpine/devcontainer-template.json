@@ -1,0 +1,10 @@
+{
+  "id": "alpine",
+  "version": "0.0.0",
+  "name": "mise-devcontainer-alpine",
+  "description": "Alpine-based development container built around mise.",
+  "documentationURL": "https://github.com/mkvlrn/mise-devcontainers",
+  "publisher": "mkvlrn",
+  "licenseURL": "https://github.com/mkvlrn/mise-devcontainers/blob/main/LICENSE",
+  "platforms": ["Any"]
+}
