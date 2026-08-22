@@ -57,6 +57,8 @@ jobs:
 
       - name: process release info
         id: info
+        env:
+          INPUT_HEAD_SHA: ${{ inputs.head-sha }}
         run: bun main.ts release-info
 
   promote-image:
