@@ -15,7 +15,6 @@ apt-get install -y --no-install-recommends \
   htop \
   less \
   openssh-client \
-  openssh-server \
   sudo \
   tzdata \
   libatomic1

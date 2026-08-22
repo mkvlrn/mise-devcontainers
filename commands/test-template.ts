@@ -50,7 +50,7 @@ async function runWithCleanup(args: string[]): ResultAsync<true, Error> {
     return errResult(executionSetup.error);
   }
 
-  const testRun = await runTests(distro, testExecutionDir, testSuiteFile);
+  const testRun = await runTests(testExecutionDir, testSuiteFile);
   if (testRun.isError) {
     return errResult(testRun.error);
   }
@@ -61,29 +61,26 @@ async function runWithCleanup(args: string[]): ResultAsync<true, Error> {
 async function setupHostEnvironment(): ResultAsync<true, Error> {
   try {
     await fs.mkdir(path.join(os.homedir(), ".ssh"), { recursive: true });
-    const gitConfig = path.join(os.homedir(), ".gitconfig");
-    const signingKey = path.join(os.homedir(), ".ssh", "id_ed25519_signing");
 
-    if (!(await Bun.file(gitConfig).exists())) {
-      await Bun.write(gitConfig, "");
-      cleanup.defer(() => fs.unlink(gitConfig));
-    }
+    const signingKey = path.join(os.homedir(), ".ssh", "id_ed25519_signing");
 
     if (!(await Bun.file(signingKey).exists())) {
       await $`ssh-keygen -q -t ed25519 -N "" -f ${signingKey}`;
+
       cleanup.defer(() => fs.unlink(signingKey));
       cleanup.defer(() => fs.unlink(`${signingKey}.pub`));
     }
 
     if (!process.env["SSH_AUTH_SOCK"]) {
       const output = await $`ssh-agent -s`.text();
+
       // biome-ignore lint/performance/useTopLevelRegex: single use
       const authSock = output.match(/SSH_AUTH_SOCK=([^;]+)/)?.[1];
+
       // biome-ignore lint/performance/useTopLevelRegex: single use
       const agentPid = output.match(/SSH_AGENT_PID=([0-9]+)/)?.[1];
 
       if (!(authSock && agentPid)) {
-        // throwing here to be caught by a proper error handler in catch
         throw new Error("could not start ssh agent for testing");
       }
 
@@ -120,7 +117,7 @@ async function setupTestExecution(
       },
     );
 
-    for await (const script of ["up.sh", "down.sh", "remove.sh"]) {
+    for await (const script of ["up.sh", "shell.sh", "down.sh", "remove.sh"]) {
       await fs.chmod(path.join(testExecutionDir, ".devcontainer", script), 0o755);
     }
 
@@ -130,27 +127,17 @@ async function setupTestExecution(
   }
 }
 
-async function runTests(
-  distro: string,
-  testExecutionDir: string,
-  testSuiteFile: string,
-): ResultAsync<true, Error> {
+async function runTests(testExecutionDir: string, testSuiteFile: string): ResultAsync<true, Error> {
   try {
-    const sshTarget = await getSshTarget(distro, testExecutionDir);
-
     cleanup.defer(async () => {
       await $`${testExecutionDir}/.devcontainer/remove.sh`;
     });
 
     await $`${testExecutionDir}/.devcontainer/up.sh`;
 
-    const sshReady = await waitForSsh(sshTarget, testExecutionDir);
-    if (sshReady.isError) {
-      return errResult(sshReady.error);
-    }
-
-    const remote = createRemote(sshTarget);
+    const remote = createRemote(testExecutionDir);
     const testModule = await import(url.pathToFileURL(testSuiteFile).href);
+
     await testModule.runTests(remote);
 
     return okResult(true);
@@ -159,63 +146,11 @@ async function runTests(
   }
 }
 
-async function getSshTarget(distro: string, testExecutionDir: string) {
-  const project = path.basename(testExecutionDir);
-  const projectHash = (await $`printf %s ${testExecutionDir} | git hash-object --stdin`.text())
-    .trim()
-    .slice(0, 8);
+function createRemote(testExecutionDir: string) {
+  const shell = path.join(testExecutionDir, ".devcontainer", "shell.sh");
 
-  return `mise-devcontainer-${distro}-${project}-${projectHash}`;
-}
-
-async function waitForSsh(sshTarget: string, testExecutionDir: string): ResultAsync<true, Error> {
-  console.log("==> Waiting for SSH...");
-
-  const attempts = 4;
-
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    // biome-ignore lint/performance/noAwaitInLoops: gotta keep trying
-    const result = await $`ssh \
-      -o BatchMode=yes \
-      -o ConnectionAttempts=1 \
-      -o ConnectTimeout=2 \
-      ${sshTarget} \
-      true`
-      .quiet()
-      .nothrow();
-
-    if (result.exitCode === 0) {
-      return okResult(true);
-    }
-
-    if (attempt === attempts - 1) {
-      await printContainerDiagnostics(testExecutionDir);
-
-      return errResult(new Error("SSH did not become ready"));
-    }
-
-    await Bun.sleep(2000);
-  }
-
-  return errResult(new Error("SSH did not become ready"));
-}
-
-async function printContainerDiagnostics(testExecutionDir: string) {
-  const containerId = (
-    await $`docker container ls -aq \
-      --filter ${`label=devcontainer.local_folder=${testExecutionDir}`}`.text()
-  ).trim();
-
-  console.error("==> Container status:");
-  await $`docker ps -a --filter id=${containerId}`;
-
-  console.error("==> Container logs:");
-  await $`docker logs ${containerId}`.nothrow();
-}
-
-function createRemote(sshTarget: string) {
   return async (command: string) => {
-    const result = await $`ssh ${sshTarget} ${command}`.quiet().nothrow();
+    const result = await $`${shell} ${command}`.quiet().nothrow();
 
     return {
       exitCode: result.exitCode,

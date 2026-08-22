@@ -7,7 +7,7 @@
   "workspaceFolder": "/code/${localWorkspaceFolderBasename}",
   "workspaceMount": "source=${localWorkspaceFolder},target=/code/${localWorkspaceFolderBasename},type=bind",
   "mounts": ["source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"],
-  "runArgs": ["--privileged", "-p", "127.0.0.1::22"],
+  "runArgs": ["--privileged"],
   "overrideCommand": false,
   "postCreateCommand": "post-create.sh",
   "postStartCommand": "post-start.sh",

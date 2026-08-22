@@ -18,7 +18,6 @@ apt-get install -y --no-install-recommends \
   openssh-client \
   sudo \
   tzdata \
-  openssh-server \
   libatomic1
 
 # add fish apt repo and install fish
