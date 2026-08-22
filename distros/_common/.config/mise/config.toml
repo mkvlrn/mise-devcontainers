@@ -2,7 +2,7 @@
 "github:o2sh/onefetch" = "2.27.1"
 eza = "0.23.5"
 fastfetch = "2.67.1"
-github-cli = "2.97.0"
+github-cli = "2.98.0"
 glab = "1.112.0"
 jq = "1.8.2"
 usage = "5.1.0"
