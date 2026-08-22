@@ -26,7 +26,11 @@ export async function run(_: string[]): ResultAsync<true, Error> {
   }
 
   const env = parsedEnv.value;
-  const headSha = await getHeadSha(env.GITHUB_EVENT_PATH);
+  const headSha = await getHeadSha(
+    env.GITHUB_EVENT_NAME,
+    env.GITHUB_EVENT_PATH,
+    env.INPUT_HEAD_SHA,
+  );
   if (headSha.isError) {
     return errResult(headSha.error);
   }
@@ -48,7 +52,19 @@ export async function run(_: string[]): ResultAsync<true, Error> {
   return okResult(true);
 }
 
-async function getHeadSha(eventPath: string): ResultAsync<string, Error> {
+async function getHeadSha(
+  eventName: string,
+  eventPath: string,
+  inputHeadSha?: string,
+): ResultAsync<string, Error> {
+  if (eventName === "workflow_dispatch") {
+    if (!inputHeadSha) {
+      return errResult(new Error("head SHA is required for manual release"));
+    }
+
+    return okResult(inputHeadSha);
+  }
+
   try {
     const event = pullRequestEventSchema.parse(await Bun.file(eventPath).json());
 
