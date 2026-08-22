@@ -1,17 +1,14 @@
 # mise-devcontainers
 
-Ready-to-use [Dev Containers](https://containers.dev/) built around [mise](https://mise.jdx.dev/), available in Arch Linux, Debian, Fedora, and Ubuntu.
+Ready-to-use [Dev Containers](https://containers.dev/) built around [mise](https://mise.jdx.dev/), available for Arch Linux, Debian, Fedora, and Ubuntu.
 
-They follow the Dev Container specification and work with compatible editors and tools. Optional helper scripts provide the same lifecycle from the command line and expose the container over SSH for tools without native Dev Container support.
+They follow the Dev Container specification and work with compatible editors, tools, or the Dev Container CLI.
 
 ## Requirements
 
-For normal Dev Container usage:
-
 - Docker or a compatible container runtime
-- a Dev Container-compatible editor or tool
-- an SSH agent exposed through `SSH_AUTH_SOCK`
-- at least one key loaded in the agent
+- a Dev Container-compatible tool
+- an SSH agent exposed through `SSH_AUTH_SOCK` with at least one key loaded
 
 Check the agent with:
 
@@ -19,32 +16,20 @@ Check the agent with:
 ssh-add -L
 ```
 
-The agent is forwarded into the container for SSH authentication and Git commit signing. Private SSH keys are never mounted into the container.
+The agent is forwarded for Git authentication and commit signing. Private keys never enter the container.
 
-### Helper scripts
-
-The included `up.sh`, `down.sh`, and `remove.sh` provide the standalone CLI/SSH workflow and additionally require:
-
-- [Dev Container CLI](https://github.com/devcontainers/cli)
-- Git
-- an SSH client
-
-Remote SSH support in your editor is optional, but is the intended way to connect when using this workflow.
+The included helper scripts additionally require the [Dev Container CLI](https://github.com/devcontainers/cli).
 
 ## Templates
 
-Templates are published as OCI artifacts and available through the [Dev Container Templates](https://containers.dev/templates) collection.
+Templates are published as OCI artifacts and available through the [Dev Container Templates](https://containers.dev/templates) collection:
 
-Available distros:
+- `archlinux`
+- `debian`
+- `fedora`
+- `ubuntu`
 
-```text
-archlinux
-debian
-fedora
-ubuntu
-```
-
-They can also be applied directly with the Dev Container CLI:
+They can also be applied directly:
 
 ```sh
 devcontainer templates apply \
@@ -56,19 +41,13 @@ Replace `archlinux` with the desired distro.
 
 ## Usage
 
-Use the generated `.devcontainer/` normally with any compatible Dev Container editor or tool.
+Use the generated `.devcontainer/` normally with any compatible Dev Container tool.
 
-### CLI and SSH
-
-The templates also include helper scripts for managing the container directly.
-
-Because executable permissions are not preserved when applying a template, make them executable once:
+The templates also include helper scripts for standalone CLI usage. Make them executable once:
 
 ```sh
 chmod +x .devcontainer/*.sh
 ```
-
-Then:
 
 ```sh
 # Create or start
@@ -77,6 +56,9 @@ Then:
 # Recreate
 .devcontainer/up.sh --recreate
 
+# Open a shell
+.devcontainer/shell.sh
+
 # Stop
 .devcontainer/down.sh
 
@@ -84,48 +66,35 @@ Then:
 .devcontainer/remove.sh
 ```
 
-`up.sh` also registers the container as an SSH target. Entries are stored under `~/.config/mise-devcontainers/ssh/`, with a single `Include` added to `~/.ssh/config`.
-
-Targets include the distro, project name, and a short hash of the project path:
-
-```text
-mise-devcontainer-archlinux-my-project-a1b2c3d4
-```
-
-The container can then be used through regular SSH, Remote SSH editors, and other SSH-based tools.
-
-`down.sh` keeps the container available for later. `remove.sh` removes the container, generated SSH target, and temporary image.
+`down.sh` stops the container while keeping it available. `remove.sh` removes the container and temporary image.
 
 ## Git
 
-Git includes system-wide defaults and uses the forwarded SSH agent for commit signing.
+Git includes system-wide defaults and SSH commit signing through the forwarded agent.
 
-Configure your identity inside the container:
+Set your identity inside the container:
 
 ```sh
 git config --global user.name "Your Name"
 git config --global user.email "you@example.com"
 ```
 
-Git will refuse to commit until these are set.
+If multiple keys are loaded in the agent, set `user.signingKey` to select one explicitly.
 
-If multiple keys are loaded in your agent, set `user.signingKey` to select a specific signing key.
-
-## What's included
+## Included
 
 All distros provide:
 
 - [mise](https://mise.jdx.dev/)
 - Docker-in-Docker
-- SSH
 - Fish
-- Git with system-wide defaults and SSH signing
+- Git with SSH signing
 - SSH agent forwarding
 - non-root `dev` user with sudo
 - common CLI tools managed by mise
 - projects mounted under `/code/<project>`
 
-Project-specific runtimes and tools remain with the project:
+Project-specific runtimes remain with the project:
 
 ```toml
 [tools]
@@ -144,4 +113,4 @@ pnpm = "11"
 
 ## Publishing
 
-CI builds only affected distros. Each candidate image is used to create and test its actual Dev Container template before the image is promoted and the template published, ensuring published templates reference the image that passed testing.
+CI builds affected distros, tests their actual Dev Container templates against candidate images, then promotes the images and publishes the templates.
