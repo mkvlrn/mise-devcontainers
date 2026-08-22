@@ -1,32 +1,30 @@
 import path from "node:path";
-
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
-import { z } from "zod";
-
-import { parseEnv, pathFinder } from "./misc/lib";
-import { validationMetadataSchema } from "./misc/schemas";
-
-const pullRequestEventSchema = z.object({
-  pull_request: z.object({
-    head: z.object({
-      sha: z.string(),
-    }),
-  }),
-});
+import type { z } from "zod";
+import { parseEnv, pathFinder, writeGithubOutputs } from "./misc/lib";
+import {
+  pullRequestEventSchema,
+  releaseInfoEnvSchema,
+  validationMetadataSchema,
+} from "./misc/schemas";
 
 export async function run(_: string[]): ResultAsync<true, Error> {
-  const parsedEnv = parseEnv();
+  const parsedEnv = parseEnv(releaseInfoEnvSchema);
+
   if (parsedEnv.isError) {
     return errResult(new Error("error loading env vars", { cause: parsedEnv.error }));
   }
 
   const env = parsedEnv.value;
+
   const headSha = await getHeadSha(env.GITHUB_EVENT_PATH);
+
   if (headSha.isError) {
     return errResult(headSha.error);
   }
 
   const metadata = await getValidationMetadata();
+
   if (metadata.isError) {
     return errResult(metadata.error);
   }
@@ -39,12 +37,11 @@ export async function run(_: string[]): ResultAsync<true, Error> {
     );
   }
 
-  const writeOutput = writeReleaseInfo(env.GITHUB_OUTPUT, metadata.value);
-  if (writeOutput.isError) {
-    return errResult(writeOutput.error);
-  }
-
-  return okResult(true);
+  return writeGithubOutputs(env.GITHUB_OUTPUT, {
+    distros: JSON.stringify(metadata.value.distros),
+    candidate_tag: metadata.value.candidateTag,
+    image_version: metadata.value.imageVersion,
+  });
 }
 
 async function getHeadSha(eventPath: string): ResultAsync<string, Error> {
@@ -69,20 +66,5 @@ async function getValidationMetadata(): ResultAsync<
     return okResult(metadata);
   } catch (err) {
     return errResult(new Error("could not read validation metadata", { cause: err }));
-  }
-}
-
-function writeReleaseInfo(outputPath: string, metadata: z.infer<typeof validationMetadataSchema>) {
-  try {
-    const githubOutputFile = Bun.file(outputPath).writer();
-
-    githubOutputFile.write(`distros=${JSON.stringify(metadata.distros)}\n`);
-    githubOutputFile.write(`candidate_tag=${metadata.candidateTag}\n`);
-    githubOutputFile.write(`image_version=${metadata.imageVersion}\n`);
-    githubOutputFile.end();
-
-    return okResult(true);
-  } catch (err) {
-    return errResult(new Error("could not write release info", { cause: err }));
   }
 }

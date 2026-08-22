@@ -3,20 +3,16 @@ import path from "node:path";
 import process from "node:process";
 import { parseArgs as nodeParseArgs } from "node:util";
 import { errResult, okResult, type Result } from "@mkvlrn/result";
-import type { ZodType, z } from "zod";
-import { envSchema, root } from "./schemas";
+import type { z } from "zod";
+import { root } from "./schemas";
 
 type ArgType = "string" | "boolean";
 
-type ParsedArgs<R extends Record<string, ArgType>> = {
-  [K in keyof R]: R[K] extends "boolean" ? boolean : string;
-};
-
-export function parseArgs<R extends Record<string, ArgType>>(
-  record: R,
-  schema: ZodType<ParsedArgs<R>>,
+export function parseArgs<TSchema extends z.ZodType>(
+  record: Record<string, ArgType>,
+  schema: TSchema,
   args: string[],
-): Result<ParsedArgs<R>, Error> {
+): Result<z.output<TSchema>, Error> {
   const { values } = nodeParseArgs({
     args,
     strict: true,
@@ -32,8 +28,10 @@ export function parseArgs<R extends Record<string, ArgType>>(
   return okResult(parse.data);
 }
 
-export function parseEnv(): Result<z.infer<typeof envSchema>, Error> {
-  const parse = envSchema.safeParse(process.env);
+export function parseEnv<TSchema extends z.ZodType>(
+  schema: TSchema,
+): Result<z.output<TSchema>, Error> {
+  const parse = schema.safeParse(process.env);
   if (parse.error) {
     return errResult(new Error("could not parse env vars", { cause: parse.error }));
   }
@@ -41,10 +39,27 @@ export function parseEnv(): Result<z.infer<typeof envSchema>, Error> {
   return okResult(parse.data);
 }
 
+export function writeGithubOutputs(
+  outputPath: string,
+  outputs: Record<string, string | number>,
+): Result<true, Error> {
+  try {
+    const outputFile = Bun.file(outputPath).writer();
+
+    for (const [key, value] of Object.entries(outputs)) {
+      outputFile.write(`${key}=${value}\n`);
+    }
+
+    outputFile.end();
+
+    return okResult(true);
+  } catch (err) {
+    return errResult(new Error("could not write GitHub outputs", { cause: err }));
+  }
+}
+
 export async function readJsonc<T>(filePath: string): Promise<T> {
-  const module = await import(filePath, {
-    with: { type: "jsonc" },
-  });
+  const module = await import(filePath, { with: { type: "jsonc" } });
 
   return module.default as T;
 }

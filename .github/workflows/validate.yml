@@ -9,10 +9,6 @@ on:
       - synchronize
       - reopened
 
-env:
-  GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  GHCR_USERNAME: ${{ github.actor }}
-
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -80,6 +76,9 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: login to ghcr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
         run: bun main.ts login-ghcr
 
       - name: build candidate image
@@ -155,6 +154,9 @@ jobs:
         run: npm install -g @devcontainers/cli
 
       - name: login to ghcr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
         run: bun main.ts login-ghcr
 
       - name: download template artifact
@@ -174,6 +176,8 @@ jobs:
       - test-template
     if: always()
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: setup checkout action
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

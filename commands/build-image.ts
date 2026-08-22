@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
-import { $ } from "bun";
 import { parseArgs, pathFinder, prepareOverlayDir } from "./misc/lib";
 import { distroTagCacheSchema } from "./misc/schemas";
 

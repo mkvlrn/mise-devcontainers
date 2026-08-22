@@ -1,12 +1,9 @@
 import { errResult, okResult, type Result } from "@mkvlrn/result";
-
 import { parseEnv } from "./misc/lib";
-
-const validResults = ["success", "skipped"];
+import { validationResultEnvSchema } from "./misc/schemas";
 
 export function run(_: string[]): Result<true, Error> {
-  const parsedEnv = parseEnv();
-
+  const parsedEnv = parseEnv(validationResultEnvSchema);
   if (parsedEnv.isError) {
     return errResult(new Error("error loading env vars", { cause: parsedEnv.error }));
   }
@@ -20,8 +17,8 @@ export function run(_: string[]): Result<true, Error> {
   };
 
   for (const [job, result] of Object.entries(results)) {
-    if (!(result && validResults.includes(result))) {
-      return errResult(new Error(`${job} finished with result: ${result ?? "unknown"}`));
+    if (result !== "success" && result !== "skipped") {
+      return errResult(new Error(`${job} finished with result: ${result}`));
     }
   }
 
