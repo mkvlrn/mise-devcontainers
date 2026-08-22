@@ -13,25 +13,20 @@ export async function run(_: string[]): ResultAsync<true, Error> {
 
   const env = parsedEnv.value;
   const githubOutputFile = Bun.file(env.GITHUB_OUTPUT).writer();
-
-  const base = processBaseOutputs(env, githubOutputFile);
-  if (base.isError) {
-    return errResult(base.error);
+  const baseOutputs = processBaseOutputs(env, githubOutputFile);
+  if (baseOutputs.isError) {
+    return errResult(baseOutputs.error);
   }
 
-  const workflowDispatch = processWorkflowDispatch(env, githubOutputFile);
-  if (workflowDispatch.isError) {
-    return errResult(workflowDispatch.error);
-  }
-  if (workflowDispatch.value) {
-    githubOutputFile.end();
-
-    return okResult(true);
+  const changedFiles = await getChangedFiles(env);
+  if (changedFiles.isError) {
+    return errResult(changedFiles.error);
   }
 
-  const changes = await processChanges(env, githubOutputFile);
-  if (changes.isError) {
-    return errResult(changes.error);
+  const changedDistros = getChangedDistros(changedFiles.value);
+  const writeDistros = writeDistrosOutput(githubOutputFile, changedDistros);
+  if (writeDistros.isError) {
+    return errResult(writeDistros.error);
   }
 
   githubOutputFile.end();
@@ -53,55 +48,61 @@ function processBaseOutputs(
   }
 }
 
-function processWorkflowDispatch(
-  env: z.infer<typeof envSchema>,
-  outputFile: Bun.FileSink,
-): Result<boolean, Error> {
-  try {
-    if (env.GITHUB_EVENT_NAME === "workflow_dispatch") {
-      if (env.INPUT_DISTRO === "all") {
-        outputFile.write(`distros=${JSON.stringify(distroList)}\n`);
-      } else {
-        outputFile.write(`distros=${JSON.stringify([env.INPUT_DISTRO])}\n`);
-      }
-
-      return okResult(true);
-    }
-
-    return okResult(false);
-  } catch (err) {
-    return errResult(new Error("could not process workflow dispatch", { cause: err }));
-  }
-}
-
-async function processChanges(
-  env: z.infer<typeof envSchema>,
-  outputFile: Bun.FileSink,
-): ResultAsync<true, Error> {
+async function getChangedFiles(env: z.infer<typeof envSchema>): ResultAsync<string[], Error> {
   try {
     const event = await Bun.file(env.GITHUB_EVENT_PATH).json();
     const baseSha = event.pull_request.base.sha;
-    const mergeSha = event.pull_request.merge_commit_sha;
-    const changedFiles = (await $`git diff --name-only ${baseSha} ${mergeSha}`).text();
+    const headSha = event.pull_request.head.sha;
+    const output = await $`git diff --name-only ${baseSha}...${headSha}`.text();
 
-    // biome-ignore lint/performance/useTopLevelRegex: only called once
-    const changesInCommon = /^distros\/_common/;
-    if (changesInCommon.test(changedFiles)) {
-      outputFile.write(`distros=${JSON.stringify(distroList)}`);
+    return okResult(
+      output
+        .trim()
+        .split("\n")
+        .filter((file) => file.length > 0),
+    );
+  } catch (err) {
+    return errResult(new Error("could not get changed files", { cause: err }));
+  }
+}
 
-      return okResult(true);
-    }
+function getChangedDistros(changedFiles: string[]): string[] {
+  if (changesAffectAllDistros(changedFiles)) {
+    return distroList;
+  }
 
-    const changedDistros: string[] = [];
-    for (const distro of distroList) {
-      if (changedFiles.includes(`distros/${distro}`)) {
-        changedDistros.push(distro);
-      }
-    }
-    outputFile.write(`distros=${JSON.stringify(changedDistros)}`);
+  return distroList.filter((distro) => changesAffectDistro(changedFiles, distro));
+}
+
+function changesAffectAllDistros(changedFiles: string[]): boolean {
+  return changedFiles.some(
+    (file) =>
+      file.startsWith("distros/_common/") ||
+      file.startsWith("templates/_common/") ||
+      file.startsWith("test/_common/") ||
+      file.startsWith("commands/") ||
+      file.startsWith(".github/workflows/") ||
+      file === "main.ts" ||
+      file === "package.json" ||
+      file === "bun.lock",
+  );
+}
+
+function changesAffectDistro(changedFiles: string[], distro: string): boolean {
+  return changedFiles.some(
+    (file) =>
+      file.startsWith(`distros/${distro}/`) ||
+      file.startsWith(`templates/${distro}/`) ||
+      file.startsWith(`test/${distro}/`),
+  );
+}
+
+function writeDistrosOutput(outputFile: Bun.FileSink, distros: string[]): Result<true, Error> {
+  try {
+    outputFile.write(`distros=${JSON.stringify(distros)}\n`);
 
     return okResult(true);
   } catch (err) {
-    return errResult(new Error("could not process changes", { cause: err }));
+    return errResult(new Error("could not write distros output", { cause: err }));
   }
 }
