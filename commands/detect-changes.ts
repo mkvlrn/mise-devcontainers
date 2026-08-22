@@ -82,9 +82,7 @@ function changesAffectAllDistros(changedFiles: string[]): boolean {
 
 function changesAffectDistro(changedFiles: string[], distro: string): boolean {
   return changedFiles.some(
-    (file) =>
-      file.startsWith(`distros/${distro}/`) ||
-      file.startsWith(`templates/${distro}/`) ||
+    (file) => file.startsWith(`distros/${distro}/`) || file.startsWith(`templates/${distro}/`),
   );
 }
 

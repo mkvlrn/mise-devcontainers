@@ -165,3 +165,29 @@ jobs:
 
       - name: test template
         run: bun main.ts test-template --distro "${{ matrix.distro }}"
+
+  validation:
+    needs:
+      - detect-changes
+      - build-image
+      - create-template
+      - test-template
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: setup checkout action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: setup bun action
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+
+      - name: install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: check validation result
+        env:
+          DETECT_CHANGES_RESULT: ${{ needs.detect-changes.result }}
+          BUILD_IMAGE_RESULT: ${{ needs.build-image.result }}
+          CREATE_TEMPLATE_RESULT: ${{ needs.create-template.result }}
+          TEST_TEMPLATE_RESULT: ${{ needs.test-template.result }}
+        run: bun main.ts validation-result

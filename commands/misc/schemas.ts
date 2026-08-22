@@ -57,4 +57,8 @@ export const envSchema = z.object({
   GITHUB_EVENT_NAME: z.string(),
   GITHUB_EVENT_PATH: z.string(),
   SSH_AUTH_SOCK: z.string().optional(),
+  DETECT_CHANGES_RESULT: z.enum(["success", "failure", "cancelled", "skipped"]).optional(),
+  BUILD_IMAGE_RESULT: z.enum(["success", "failure", "cancelled", "skipped"]).optional(),
+  CREATE_TEMPLATE_RESULT: z.enum(["success", "failure", "cancelled", "skipped"]).optional(),
+  TEST_TEMPLATE_RESULT: z.enum(["success", "failure", "cancelled", "skipped"]).optional(),
 });

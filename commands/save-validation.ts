@@ -29,7 +29,7 @@ export async function run(args: string[]): ResultAsync<true, Error> {
 
   try {
     const metadata = validationMetadataSchema.parse({
-      distros: JSON.parse(parsedArgs.value.distros),
+      distros: parsedArgs.value.distros,
       candidateTag: parsedArgs.value.candidateTag,
       imageVersion: parsedArgs.value.imageVersion,
       headSha: parsedArgs.value.headSha,
