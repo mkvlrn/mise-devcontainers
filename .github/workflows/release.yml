@@ -1,12 +1,6 @@
 name: release
 
 on:
-  workflow_dispatch:
-    inputs:
-      head-sha:
-        description: Validated PR head SHA
-        required: true
-        type: string
   pull_request:
     branches:
       - main
@@ -19,9 +13,7 @@ env:
 
 jobs:
   restore-validation:
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -43,8 +35,6 @@ jobs:
 
       - name: restore validation
         id: restore
-        env:
-          INPUT_HEAD_SHA: ${{ inputs.head-sha }}
         run: bun main.ts restore-validation
 
       - name: download validation metadata
@@ -57,8 +47,6 @@ jobs:
 
       - name: process release info
         id: info
-        env:
-          INPUT_HEAD_SHA: ${{ inputs.head-sha }}
         run: bun main.ts release-info
 
   promote-image:
