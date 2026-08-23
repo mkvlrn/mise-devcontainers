@@ -22,5 +22,7 @@ RUN rm -rf /tmp/*
 COPY --chmod=755 binscripts/ /usr/local/bin/
 COPY --chmod=644 gitconfig /etc/gitconfig
 
+ENV MISE_DEVCONTAINER=1
+
 ENTRYPOINT [ "docker-in-docker.sh" ]
 CMD ["sleep", "infinity"]

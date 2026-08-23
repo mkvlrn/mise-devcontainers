@@ -4,10 +4,18 @@ set -e
 dockerd >/dev/null 2>&1 &
 DOCKERD_PID=$!
 
-trap 'kill "$DOCKERD_PID"' TERM INT
+"$@" &
+COMMAND_PID=$!
+
+cleanup() {
+  kill "$COMMAND_PID" "$DOCKERD_PID" 2>/dev/null || true
+  wait "$COMMAND_PID" "$DOCKERD_PID" 2>/dev/null || true
+}
+
+trap cleanup TERM INT
 
 until docker info >/dev/null 2>&1; do
   sleep 1
 done
 
-exec "$@"
+wait "$COMMAND_PID"
