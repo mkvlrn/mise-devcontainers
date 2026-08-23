@@ -10,9 +10,8 @@
   "mounts": ["source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"],
   "runArgs": ["--privileged"],
   "overrideCommand": false,
-  "postCreateCommand": ["post-create.sh"],
-  "postStartCommand": ["post-start.sh"],
-  "postAttachCommand": ["post-start.sh"],
+  "postStartCommand": ["/bin/fish", "-lc", "/usr/local/bin/post-start.sh"],
+  "postAttachCommand": ["/bin/fish", "-lc", "/usr/local/bin/post-start.sh"],
   "containerEnv": {
     "SSH_AUTH_SOCK": "/ssh-agent",
     "MISE_DEVCONTAINER": "1",
