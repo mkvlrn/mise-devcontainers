@@ -4,17 +4,17 @@
   "image": "",
   "containerUser": "root",
   "remoteUser": "dev",
+  "privileged": true,
   "updateRemoteUserUID": true,
   "workspaceFolder": "/code/${localWorkspaceFolderBasename}",
   "workspaceMount": "source=${localWorkspaceFolder},target=/code/${localWorkspaceFolderBasename},type=bind",
   "mounts": ["source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"],
-  "runArgs": ["--privileged"],
   "overrideCommand": false,
   "postStartCommand": ["/bin/fish", "-lc", "/usr/local/bin/post-start.sh"],
   "postAttachCommand": ["/bin/fish", "-lc", "/usr/local/bin/post-start.sh"],
+  "waitFor": "postStartCommand",
   "containerEnv": {
     "SSH_AUTH_SOCK": "/ssh-agent",
-    "MISE_DEVCONTAINER": "1",
     "MISE_GITHUB_TOKEN": "${localEnv:MISE_GITHUB_TOKEN}"
   }
 }
