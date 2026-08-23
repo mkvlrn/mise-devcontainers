@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
   "name": "mise-devcontainer-${localWorkspaceFolderBasename}",
   "image": "",
   "containerUser": "root",
@@ -9,8 +10,9 @@
   "mounts": ["source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"],
   "runArgs": ["--privileged"],
   "overrideCommand": false,
-  "postCreateCommand": "post-create.sh",
-  "postStartCommand": "post-start.sh",
+  "postCreateCommand": ["post-create.sh"],
+  "postStartCommand": ["post-start.sh"],
+  "postAttachCommand": ["post-start.sh"],
   "containerEnv": {
     "SSH_AUTH_SOCK": "/ssh-agent",
     "MISE_DEVCONTAINER": "1",
