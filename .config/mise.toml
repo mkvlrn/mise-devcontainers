@@ -23,3 +23,6 @@ description = "Fix files with biome"
 run = "biome check --diagnostic-level=warn --no-errors-on-unmatched --write"
 [tasks.typecheck]
 description = "Run tsc"
+[tasks.sync-branch]
+description = "Sync package manager deps"
+run = "mise install && mise prune -y && bun install --frozen-lockfile && lefthook install"

@@ -1,2 +1,16 @@
 [commit-msg.commands]
 cog-lint = { run = "cog verify --file {1}" }
+
+[pre-commit.commands]
+typecheck = { glob = "*.{ts,tsx}", run = "mise typecheck" }
+lint = { glob = "*.{ts,tsx,json,jsonc}", run = "mise lint {staged_files}" }
+
+[pre-push.commands]
+typecheck = { run = "mise typecheck" }
+lint = { run = "mise lint" }
+
+[post-checkout.commands]
+sync = { run = "mise sync-branch" }
+
+[post-merge.commands]
+sync = { run = "mise sync-branch" }
