@@ -1,7 +1,7 @@
 import { check, type Remote } from "./util";
 
 export async function runBaseTests(remote: Remote): Promise<void> {
-  for (const tool of ["mise", "docker", "fish", "git", "ssh"]) {
+  for await (const tool of ["mise", "docker", "fish", "git", "ssh"]) {
     await check(`${tool} is available`, async () => {
       const result = await remote(`command -v ${tool}`);
       return result.exitCode === 0;

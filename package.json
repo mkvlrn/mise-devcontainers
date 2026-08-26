@@ -33,13 +33,13 @@
     }
   },
   "devDependencies": {
-    "@mkvlrn/config": "0.4.7",
+    "@mkvlrn/config": "0.5.1",
     "@types/bun": "1.4.0",
-    "@types/node": "26.2.0",
+    "@types/node": "26.3.0",
     "typescript": "7.0.2"
   },
   "dependencies": {
-    "@mkvlrn/result": "0.3.4",
+    "@mkvlrn/result": "0.3.5",
     "dayjs": "1.11.23",
     "zod": "4.4.3"
   }
