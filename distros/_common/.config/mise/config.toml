@@ -5,8 +5,8 @@ fastfetch = "2.67.1"
 github-cli = "2.98.0"
 glab = "1.112.0"
 jq = "1.8.2"
-usage = "5.1.0"
-oh-my-posh = '30.6.5'
+usage = "6.4.0"
+oh-my-posh = '30.7.0'
 
 [settings]
 disable_backends = ["asdf"]
