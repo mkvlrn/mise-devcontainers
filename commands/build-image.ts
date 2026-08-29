@@ -49,6 +49,10 @@ async function prepareBuildFiles(
 
     return okResult(true);
   } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      return okResult(true);
+    }
+
     return errResult(new Error("could not prepare build files", { cause: err }));
   }
 }
