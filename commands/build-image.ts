@@ -1,4 +1,3 @@
-import fs from "node:fs/promises";
 import path from "node:path";
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
 import { parseArgs, pathFinder, prepareOverlayDir } from "./misc/lib";
@@ -45,14 +44,9 @@ async function prepareBuildFiles(
 ): ResultAsync<true, Error> {
   try {
     await prepareOverlayDir(commonDir, distroDir, outputDir);
-    await fs.unlink(path.join(outputDir, "binscripts", ".gitkeep"));
 
     return okResult(true);
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-      return okResult(true);
-    }
-
     return errResult(new Error("could not prepare build files", { cause: err }));
   }
 }
