@@ -10,6 +10,7 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=/code/${localWorkspaceFolderBasename},type=bind",
   "mounts": ["source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"],
   "overrideCommand": false,
+  "postCreateCommand": ["/bin/fish", "-lc", "/usr/local/bin/post-create.sh"],
   "postStartCommand": ["/bin/fish", "-lc", "/usr/local/bin/post-start.sh"],
   "postAttachCommand": ["/bin/fish", "-lc", "/usr/local/bin/post-start.sh"],
   "waitFor": "postStartCommand",
