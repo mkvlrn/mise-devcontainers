@@ -1,4 +1,3 @@
-import fs from "node:fs/promises";
 import path from "node:path";
 import { errResult, okResult, type ResultAsync } from "@mkvlrn/result";
 import { parseArgs, pathFinder, prepareOverlayDir } from "./misc/lib";
