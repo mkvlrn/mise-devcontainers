@@ -41,6 +41,6 @@
   "dependencies": {
     "@mkvlrn/result": "0.3.5",
     "dayjs": "1.11.23",
-    "zod": "4.5.1"
+    "zod": "4.5.4"
   }
 }
