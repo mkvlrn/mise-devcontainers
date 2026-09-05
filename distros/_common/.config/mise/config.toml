@@ -1,11 +1,11 @@
 [tools]
 "github:o2sh/onefetch" = "2.28.1"
 eza = "0.23.5"
-fastfetch = "2.67.1"
-github-cli = "2.98.0"
+fastfetch = "2.68.1"
+github-cli = "2.100.0"
 glab = "1.112.0"
 jq = "1.8.2"
-usage = "6.5.0"
+usage = "6.6.1"
 oh-my-posh = '30.9.0'
 
 [settings]
