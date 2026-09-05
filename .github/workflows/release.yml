@@ -7,6 +7,11 @@ on:
     types:
       - closed
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   restore-validation:
     if: github.event.pull_request.merged == true
@@ -89,10 +94,6 @@ jobs:
       - restore-validation
       - promote-image
     if: needs.restore-validation.outputs.distros != '[]'
-    strategy:
-      fail-fast: false
-      matrix:
-        distro: ${{ fromJSON(needs.restore-validation.outputs.distros) }}
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -111,6 +112,9 @@ jobs:
       - name: install dependencies
         run: bun install --frozen-lockfile
 
+      - name: setup oras action
+        uses: oras-project/setup-oras@8d34698a59f5ffe24821f0b48ab62a3de8b64b20 # v1.2.3
+
       - name: install dev container cli
         run: npm install -g @devcontainers/cli
 
@@ -120,16 +124,17 @@ jobs:
           GHCR_USERNAME: ${{ github.actor }}
         run: bun main.ts login-ghcr
 
-      - name: download tested template artifact
+      - name: download tested template artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: template-${{ matrix.distro }}
-          path: .tmp/.publish-template-${{ matrix.distro }}
+          pattern: template-*
+          path: .tmp/.publish-templates
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ needs.restore-validation.outputs.run-id }}
 
-      - name: publish template
+      - name: publish template collection
         run: |
           bun main.ts publish-template \
-            --distro "${{ matrix.distro }}" \
-            --candidateTag "${{ needs.restore-validation.outputs.candidate-tag }}"
+            --distros '${{ needs.restore-validation.outputs.distros }}' \
+            --candidateTag "${{ needs.restore-validation.outputs.candidate-tag }}" \
+            --imageVersion "${{ needs.restore-validation.outputs.image-version }}"
