@@ -84,6 +84,8 @@ export const pathFinder = {
   testExecutionDir: (distro: string) => path.join(root, ".tmp", `.test-execution-${distro}`),
   validationMetadataDir: () => path.join(root, ".tmp", ".validation-metadata"),
   publishCollectionDir: () => path.join(root, ".tmp", ".publish-collection"),
+  downloadedTemplateDir: (distro: string) =>
+    path.join(root, ".tmp", ".publish-templates", `template-${distro}`),
 } as const;
 
 export async function prepareOverlayDir(commonDir: string, distroDir: string, outputDir: string) {

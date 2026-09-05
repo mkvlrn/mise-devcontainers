@@ -36,6 +36,30 @@ export const distroTagImageSchema = z.strictObject({
 
 export const distroTagSchema = distroTagImageSchema.omit({ imageVersion: true });
 
+export const publishTemplatesSchema = z.strictObject({
+  distros: z
+    .string()
+    .transform((value, ctx) => {
+      try {
+        return JSON.parse(value) as unknown;
+      } catch {
+        ctx.addIssue({ code: "custom", message: "distros must be a JSON array" });
+        return z.NEVER;
+      }
+    })
+    .pipe(
+      z
+        .array(distroSchema.shape.distro)
+        .min(1)
+        .refine(
+          (distros) => new Set(distros).size === distros.length,
+          "distros must not contain duplicates",
+        ),
+    ),
+  candidateTag: distroTagCacheSchema.shape.candidateTag,
+  imageVersion: distroTagImageSchema.shape.imageVersion,
+});
+
 export const validationMetadataSchema = z.strictObject({
   distros: z.array(distroSchema.shape.distro),
   candidateTag: distroTagCacheSchema.shape.candidateTag,

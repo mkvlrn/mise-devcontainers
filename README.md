@@ -115,4 +115,8 @@ pnpm = "11"
 
 ## Publishing
 
-CI builds affected distros, tests their actual Dev Container templates against candidate images, then promotes the images and publishes the templates.
+The release publishes five distro images, five individual template OCI artifacts (`ghcr.io/mkvlrn/mise-devcontainers/<distro>`), and one shared template collection (`ghcr.io/mkvlrn/mise-devcontainers`). Only affected distro images are built: CI tests their actual Dev Container templates against candidate images, then promotes those images.
+
+After all affected images are promoted, a single publishing job prepares the changed templates from the tested CI artifacts. For unchanged distros, it restores the published template archives from their individual GHCR packages with `oras pull`, keeping their existing versions and configuration intact. It then invokes `devcontainer templates publish` once with all five templates so the shared collection remains complete. Publishing per distro overwrites the shared collection rather than adding to it; a complete collection is mandatory even for a one-distro release. Release workflows are serialized to prevent overlapping release writes, with `queue: max` so subsequent merges queue instead of replacing a pending release.
+
+If an unchanged template artifact is missing or cannot be restored, publishing aborts rather than publishing an incomplete collection. Retry transient registry failures; if a template has never been published, a full release is required. For the first repair of an already incomplete collection, change `.rebuild-all` in a pull request to trigger an all-five-distro build, validation, and release. The Dev Container Templates site updates through a crawler, so the repaired collection may not appear there immediately after publishing.

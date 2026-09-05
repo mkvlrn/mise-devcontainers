@@ -34,6 +34,9 @@ jobs:
       - name: install dependencies
         run: bun install --frozen-lockfile
 
+      - name: test publishing logic
+        run: bun test commands/publish-template.test.ts
+
       - name: detect changes
         id: changes
         run: bun main.ts detect-changes
