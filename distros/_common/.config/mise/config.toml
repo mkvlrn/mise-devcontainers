@@ -6,7 +6,7 @@ github-cli = "2.100.0"
 glab = "1.112.0"
 jq = "1.8.2"
 usage = "6.6.1"
-oh-my-posh = '30.9.0'
+oh-my-posh = '31.1.2'
 
 [settings]
 auto_update = true
