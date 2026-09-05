@@ -23,6 +23,8 @@ COPY --chmod=755 binscripts/ /usr/local/bin/
 COPY --chmod=644 gitconfig /etc/gitconfig
 
 ENV MISE_DEVCONTAINER=1
+ENV GOPATH="/home/dev/.go"
+ENV PATH="/home/dev/.local/bin:/usr/local/bin:${GOPATH}/bin:${PATH}"
 
 ENTRYPOINT [ "docker-in-docker.sh" ]
 CMD ["sleep", "infinity"]
