@@ -1,6 +1,6 @@
 [tools]
-biome = "2.5.11"
-bun = "1.4.0"
+biome = "2.5.12"
+bun = "1.4.1"
 cocogitto = "7.0.0"
 lefthook = "2.1.12"
 
