@@ -12,7 +12,7 @@ import { run as saveValidation } from "./commands/save-validation";
 import { run as testTemplate } from "./commands/test-template";
 import { run as validationResult } from "./commands/validation-result";
 
-export type RunResult = Result<true, Error> | ResultAsync<true, Error>;
+type RunResult = Result<true, Error> | ResultAsync<true, Error>;
 type Command = (args: string[]) => RunResult;
 type CommandName = keyof typeof commands;
 
