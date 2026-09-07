@@ -23,6 +23,8 @@ ssh-add -L
 
 The agent is forwarded for Git authentication and commit signing. Private keys never enter the container.
 
+If `MISE_GITHUB_TOKEN` is set on the host, it is forwarded into the container for mise's GitHub-backed operations.
+
 The included helper scripts additionally require the [Dev Container CLI](https://github.com/devcontainers/cli).
 
 ## templates
@@ -110,13 +112,19 @@ pnpm = "11"
 
 ## distros
 
-| Distro     | Base        | Image                                        |
-| ---------- | ----------- | -------------------------------------------- |
-| Alpine     | 3.24        | `ghcr.io/mkvlrn/mise-devcontainer-alpine`    |
-| Arch Linux | Rolling     | `ghcr.io/mkvlrn/mise-devcontainer-archlinux` |
-| Debian     | Trixie slim | `ghcr.io/mkvlrn/mise-devcontainer-debian`    |
-| Fedora     | Rawhide     | `ghcr.io/mkvlrn/mise-devcontainer-fedora`    |
-| Ubuntu     | Current LTS | `ghcr.io/mkvlrn/mise-devcontainer-ubuntu`    |
+| Distro     | Base                       | Image                                        |
+| ---------- | -------------------------- | -------------------------------------------- |
+| Alpine     | Edge                       | `ghcr.io/mkvlrn/mise-devcontainer-alpine`    |
+| Arch Linux | Rolling                    | `ghcr.io/mkvlrn/mise-devcontainer-archlinux` |
+| Debian     | Trixie slim                | `ghcr.io/mkvlrn/mise-devcontainer-debian`    |
+| Fedora     | Rawhide                    | `ghcr.io/mkvlrn/mise-devcontainer-fedora`    |
+| Ubuntu     | Latest release (`rolling`) | `ghcr.io/mkvlrn/mise-devcontainer-ubuntu`    |
+
+## why multiple distros?
+
+The development environment is intentionally kept consistent across multiple Linux distributions. This makes it possible to use the same tooling and workflow while choosing a familiar base, matching a project's deployment environment more closely, or testing against different userspaces and package ecosystems.
+
+The distro should be a choice, not a constraint imposed by the development environment.
 
 ## license
 
