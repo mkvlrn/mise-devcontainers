@@ -12,7 +12,7 @@ Project-specific runtimes and tools remain with the project through its mise con
 ## requirements
 
 - Docker or a compatible container runtime
-- a Dev Container-compatible tool
+- the [Dev Container CLI](https://github.com/devcontainers/cli)
 - an SSH agent exposed through `SSH_AUTH_SOCK` with at least one key loaded
 
 Check the agent with:
@@ -25,8 +25,6 @@ The agent is forwarded for Git authentication and commit signing. Private keys n
 
 If `MISE_GITHUB_TOKEN` is set on the host, it is forwarded into the container for mise's GitHub-backed operations.
 
-The included helper scripts additionally require the [Dev Container CLI](https://github.com/devcontainers/cli).
-
 ## templates
 
 Templates are published as OCI artifacts and available through the [Dev Container Templates](https://containers.dev/templates) collection:
@@ -37,7 +35,7 @@ Templates are published as OCI artifacts and available through the [Dev Containe
 - `fedora`
 - `ubuntu`
 
-They can also be applied directly:
+Apply a template to a project with the Dev Container CLI:
 
 ```sh
 devcontainer templates apply \
@@ -47,9 +45,13 @@ devcontainer templates apply \
 
 Replace `archlinux` with the desired distro.
 
+This creates the project's `.devcontainer/` directory. Once applied, the container can be used with any compatible editor or Dev Container tool.
+
+The template should be applied with the CLI rather than an editor's template creation flow. In particular, VS Code's **New Dev Container from Template** workflow resolves the template from an intermediate container where the host `SSH_AUTH_SOCK` is unavailable, preventing the required SSH agent mount from being created.
+
 ## usage
 
-Use the generated `.devcontainer/` normally with any compatible Dev Container tool.
+Use the generated `.devcontainer/` normally with any compatible Dev Container tool or editor.
 
 The templates also include helper scripts for standalone CLI usage. Make them executable once:
 
