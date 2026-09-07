@@ -120,6 +120,12 @@ pnpm = "11"
 | Fedora     | Rawhide                    | `ghcr.io/mkvlrn/mise-devcontainer-fedora`    |
 | Ubuntu     | Latest release (`rolling`) | `ghcr.io/mkvlrn/mise-devcontainer-ubuntu`    |
 
+## why multiple distros?
+
+The development environment is intentionally kept consistent across multiple Linux distributions. This makes it possible to use the same tooling and workflow while choosing a familiar base, matching a project's deployment environment more closely, or testing against different userspaces and package ecosystems.
+
+The distro should be a choice, not a constraint imposed by the development environment.
+
 ## license
 
 [MIT](https://github.com/mkvlrn/mise-devcontainers/blob/main/LICENSE)
