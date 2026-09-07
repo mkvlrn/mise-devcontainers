@@ -1,5 +1,8 @@
 # mise-devcontainers
 
+[![mise](https://mise-versions.jdx.dev/badge.svg)](https://mise.jdx.dev)
+[![license](https://img.shields.io/github/license/mkvlrn/mise-devcontainers?style=flat)](https://github.com/mkvlrn/mise-devcontainers?tab=MIT-1-ov-file#)
+
 Ready-to-use [Dev Containers](https://containers.dev/) built around [mise](https://mise.jdx.dev/), available for Alpine, Arch Linux, Debian, Fedora, and Ubuntu.
 
 They follow the Dev Container specification and work with compatible editors, tools, or the Dev Container CLI.
@@ -112,3 +115,7 @@ pnpm = "11"
 | Debian     | Trixie slim | `ghcr.io/mkvlrn/mise-devcontainer-debian`    |
 | Fedora     | Rawhide     | `ghcr.io/mkvlrn/mise-devcontainer-fedora`    |
 | Ubuntu     | Current LTS | `ghcr.io/mkvlrn/mise-devcontainer-ubuntu`    |
+
+## license
+
+[MIT](https://github.com/mkvlrn/template-node?tab=MIT-1-ov-file#)

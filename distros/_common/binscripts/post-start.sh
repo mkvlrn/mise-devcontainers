@@ -5,4 +5,4 @@ set -e
 mise self-update -y || true
 mise cache clear || true
 mise prune -y || true
-mise install || true
+mise install
