@@ -6,12 +6,6 @@
   "private": true,
   "type": "module",
   "author": "Mike Valeriano <dev@mkvlrn.cc>",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://choosealicense.com/licenses/mit/"
-    }
-  ],
   "repository": {
     "type": "git",
     "url": "git@github.com:mkvlrn/mise-devcontainers"
