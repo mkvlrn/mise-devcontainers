@@ -113,7 +113,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: setup oras action
-        uses: oras-project/setup-oras@8d34698a59f5ffe24821f0b48ab62a3de8b64b20 # v1.2.3
+        uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
 
       - name: install dev container cli
         run: npm install -g @devcontainers/cli
