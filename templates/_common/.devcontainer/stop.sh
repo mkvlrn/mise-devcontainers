@@ -11,7 +11,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # Container
 # -----------------------------------------------------------------------------
 
-# Find the Docker container belonging to this workspace.
+# Dev Container CLI labels containers with their local workspace folder. Use
+# that label to find the container belonging to this project.
 CONTAINER_ID="$(
   docker container ls -aq \
     --filter "label=devcontainer.local_folder=$ROOT" |
@@ -19,12 +20,10 @@ CONTAINER_ID="$(
 )"
 
 if [ -n "$CONTAINER_ID" ]; then
-  echo "🗑️ Removing dev container..."
-  docker rm -f "$CONTAINER_ID" >/dev/null
+  echo "⏹️ Stopping dev container..."
+  docker stop "$CONTAINER_ID" >/dev/null
+
+  echo "✓ Dev container stopped."
+else
+  echo "Dev container does not exist."
 fi
-
-# -----------------------------------------------------------------------------
-# Feedback
-# -----------------------------------------------------------------------------
-
-echo "✓ Dev container removed."
