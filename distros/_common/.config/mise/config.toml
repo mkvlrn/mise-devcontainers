@@ -5,8 +5,8 @@ fastfetch = "2.68.1"
 github-cli = "2.100.0"
 glab = "1.112.0"
 jq = "1.8.2"
-usage = "6.6.1"
-oh-my-posh = '31.1.2'
+usage = "6.7.1"
+oh-my-posh = '31.1.3'
 
 [settings]
 auto_update = true
