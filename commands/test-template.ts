@@ -68,7 +68,7 @@ async function setupTestExecution(
       { recursive: true, force: true },
     );
 
-    for await (const script of ["up.sh", "shell.sh", "down.sh", "remove.sh"]) {
+    for await (const script of ["up.sh", "shell.sh", "down.sh", "stop.sh"]) {
       await fs.chmod(path.join(testExecutionDir, ".devcontainer", script), 0o755);
     }
 
@@ -81,7 +81,7 @@ async function setupTestExecution(
 async function runTests(testExecutionDir: string, testSuiteFile: string): ResultAsync<true, Error> {
   try {
     cleanup.defer(async () => {
-      await Bun.$`${testExecutionDir}/.devcontainer/remove.sh`;
+      await Bun.$`${testExecutionDir}/.devcontainer/down.sh`;
     });
 
     await Bun.$`${testExecutionDir}/.devcontainer/up.sh`;
