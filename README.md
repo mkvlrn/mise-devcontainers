@@ -1,13 +1,15 @@
 # mise-devcontainers
 
 [![mise](https://mise-versions.jdx.dev/badge.svg)](https://mise.jdx.dev)
-[![license](https://img.shields.io/github/license/mkvlrn/mise-devcontainers?style=flat)](https://github.com/mkvlrn/mise-devcontainers?tab=MIT-1-ov-file#)
+[![license](https://img.shields.io/github/license/mkvlrn/mise-devcontainers?style=flat)](https://github.com/mkvlrn/mise-devcontainers/blob/main/LICENSE)
 
 Ready-to-use [Dev Containers](https://containers.dev/) built around [mise](https://mise.jdx.dev/), available for Alpine, Arch Linux, Debian, Fedora, and Ubuntu.
 
-They follow the Dev Container specification and work with compatible editors, tools, or the Dev Container CLI.
+Each distro is provided as a prebuilt container image and a [Dev Container Template](https://containers.dev/templates). The images provide the common development environment, while the templates add the project-facing Dev Container configuration.
 
-## Requirements
+Project-specific runtimes and tools remain with the project through its mise configuration.
+
+## requirements
 
 - Docker or a compatible container runtime
 - a Dev Container-compatible tool
@@ -23,7 +25,7 @@ The agent is forwarded for Git authentication and commit signing. Private keys n
 
 The included helper scripts additionally require the [Dev Container CLI](https://github.com/devcontainers/cli).
 
-## Templates
+## templates
 
 Templates are published as OCI artifacts and available through the [Dev Container Templates](https://containers.dev/templates) collection:
 
@@ -43,7 +45,7 @@ devcontainer templates apply \
 
 Replace `archlinux` with the desired distro.
 
-## Usage
+## usage
 
 Use the generated `.devcontainer/` normally with any compatible Dev Container tool.
 
@@ -72,7 +74,7 @@ chmod +x .devcontainer/*.sh
 
 `down.sh` stops the container while keeping it available. `remove.sh` removes the container and temporary image.
 
-## Git
+## git
 
 Git includes system-wide defaults and SSH commit signing through the forwarded agent.
 
@@ -85,7 +87,7 @@ git config --global user.email "you@example.com"
 
 If multiple keys are loaded in the agent, set `user.signingKey` to select one explicitly.
 
-## Included
+## included
 
 All distros provide:
 
@@ -106,7 +108,7 @@ node = "26"
 pnpm = "11"
 ```
 
-## Distros
+## distros
 
 | Distro     | Base        | Image                                        |
 | ---------- | ----------- | -------------------------------------------- |
@@ -118,4 +120,4 @@ pnpm = "11"
 
 ## license
 
-[MIT](https://github.com/mkvlrn/template-node?tab=MIT-1-ov-file#)
+[MIT](https://github.com/mkvlrn/mise-devcontainers/blob/main/LICENSE)
