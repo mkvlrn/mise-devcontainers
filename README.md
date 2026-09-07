@@ -70,13 +70,11 @@ chmod +x .devcontainer/*.sh
 .devcontainer/shell.sh
 
 # Stop
+.devcontainer/stop.sh
+
+# Stop and remove
 .devcontainer/down.sh
-
-# Remove
-.devcontainer/remove.sh
 ```
-
-`down.sh` stops the container while keeping it available. `remove.sh` removes the container and temporary image.
 
 ## git
 
