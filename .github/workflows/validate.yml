@@ -28,22 +28,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: setup bun action
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-
-      - name: install dependencies
-        run: bun install --frozen-lockfile
-
       - name: test publishing logic
-        run: bun test commands/publish-template.test.ts
+        run: ./test/publish-template-test.sh
 
       - name: detect changes
         id: changes
-        run: bun main.ts detect-changes
+        run: ./scripts/detect-changes.sh
 
       - name: save validation metadata
         run: |
-          bun main.ts save-validation \
+          ./scripts/save-validation.sh \
             --distros '${{ steps.changes.outputs.distros }}' \
             --candidateTag "${{ steps.changes.outputs.candidate_tag }}" \
             --imageVersion "${{ steps.changes.outputs.image_version }}" \
@@ -73,26 +67,20 @@ jobs:
       - name: setup checkout action
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: setup bun action
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-
       - name: setup buildx action
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
-
-      - name: install dependencies
-        run: bun install --frozen-lockfile
 
       - name: login to ghcr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USERNAME: ${{ github.actor }}
-        run: bun main.ts login-ghcr
+        run: ./scripts/login-ghcr.sh
 
       - name: build candidate image
         env:
           MISE_GITHUB_TOKEN: ${{ secrets.MISE_GITHUB_TOKEN }}
         run: |
-          bun main.ts build-image \
+          ./scripts/build-image.sh \
             --distro "${{ matrix.distro }}" \
             --candidateTag "${{ needs.detect-changes.outputs.candidate-tag }}"
 
@@ -112,15 +100,9 @@ jobs:
       - name: setup checkout action
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: setup bun action
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-
-      - name: install dependencies
-        run: bun install --frozen-lockfile
-
       - name: create template
         run: |
-          bun main.ts create-template \
+          ./scripts/create-template.sh \
             --distro "${{ matrix.distro }}" \
             --candidateTag "${{ needs.detect-changes.outputs.candidate-tag }}" \
             --imageVersion "${{ needs.detect-changes.outputs.image-version }}"
@@ -151,12 +133,6 @@ jobs:
       - name: setup checkout action
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: setup bun action
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-
-      - name: install dependencies
-        run: bun install --frozen-lockfile
-
       - name: install dev container cli
         run: npm install -g @devcontainers/cli
 
@@ -164,7 +140,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USERNAME: ${{ github.actor }}
-        run: bun main.ts login-ghcr
+        run: ./scripts/login-ghcr.sh
 
       - name: download template artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -173,7 +149,7 @@ jobs:
           path: .tmp/.publish-template-${{ matrix.distro }}
 
       - name: test template
-        run: bun main.ts test-template --distro "${{ matrix.distro }}"
+        run: ./scripts/test-template.sh --distro "${{ matrix.distro }}"
 
   validation:
     needs:
@@ -189,16 +165,10 @@ jobs:
       - name: setup checkout action
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: setup bun action
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-
-      - name: install dependencies
-        run: bun install --frozen-lockfile
-
       - name: check validation result
         env:
           DETECT_CHANGES_RESULT: ${{ needs.detect-changes.result }}
           BUILD_IMAGE_RESULT: ${{ needs.build-image.result }}
           CREATE_TEMPLATE_RESULT: ${{ needs.create-template.result }}
           TEST_TEMPLATE_RESULT: ${{ needs.test-template.result }}
-        run: bun main.ts validation-result
+        run: ./scripts/validation-result.sh
