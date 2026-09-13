@@ -1,14 +1,11 @@
 [tools]
-biome = "2.5.12"
-bun = "1.4.2"
 cocogitto = "7.0.0"
 lefthook = "2.1.12"
+shellcheck = "0.11.0"
+shfmt = "3.14.1"
 
 [hooks]
 postinstall = "lefthook install"
-
-[env]
-_.path = ["./node_modules/.bin"]
 
 [settings]
 disable_backends = ["asdf"]
@@ -16,13 +13,17 @@ use_versions_host = false
 minimum_release_age = "1d"
 
 [tasks.lint]
-description = "Check files with biome"
-run = "biome check --diagnostic-level=warn --no-errors-on-unmatched"
+description = "Check shell scripts with shellcheck"
+run = "shellcheck -x scripts/*.sh test/_common/*.sh test/*/*.sh test/publish-template-test.sh"
+
 [tasks.lint-fix]
-description = "Fix files with biome"
-run = "biome check --diagnostic-level=warn --no-errors-on-unmatched --write"
-[tasks.typecheck]
-description = "Run tsc"
+description = "Format shell scripts with shfmt"
+run = "shfmt -w scripts test"
+
+[tasks.test]
+description = "Run test suite"
+run = "./test/publish-template-test.sh"
+
 [tasks.sync-branch]
-description = "Sync package manager deps"
-run = "mise install && mise prune -y && bun install --frozen-lockfile && lefthook install"
+description = "Sync tool versions"
+run = "mise install && mise prune -y && lefthook install"

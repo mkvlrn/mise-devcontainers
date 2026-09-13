@@ -28,17 +28,12 @@ jobs:
       - name: setup checkout action
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: setup bun action
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-
-      - name: install dependencies
-        run: bun install --frozen-lockfile
-
       - name: restore validation
         id: restore
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bun main.ts restore-validation
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: ./scripts/restore-validation.sh
 
       - name: download validation metadata
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -50,7 +45,7 @@ jobs:
 
       - name: process release info
         id: info
-        run: bun main.ts release-info
+        run: ./scripts/release-info.sh
 
   promote-image:
     needs: restore-validation
@@ -67,24 +62,18 @@ jobs:
       - name: setup checkout action
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: setup bun action
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-
       - name: setup buildx action
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
-
-      - name: install dependencies
-        run: bun install --frozen-lockfile
 
       - name: login to ghcr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USERNAME: ${{ github.actor }}
-        run: bun main.ts login-ghcr
+        run: ./scripts/login-ghcr.sh
 
       - name: promote image
         run: |
-          bun main.ts promote-image \
+          ./scripts/promote-image.sh \
             --distro "${{ matrix.distro }}" \
             --candidateTag "${{ needs.restore-validation.outputs.candidate-tag }}" \
             --imageVersion "${{ needs.restore-validation.outputs.image-version }}"
@@ -103,14 +92,8 @@ jobs:
       - name: setup checkout action
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: setup bun action
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-
       - name: setup buildx action
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
-
-      - name: install dependencies
-        run: bun install --frozen-lockfile
 
       - name: setup oras action
         uses: oras-project/setup-oras@1d808f7d7f6995cc68b7bf507bfe5c5446e1dc9d # v2.0.1
@@ -122,7 +105,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USERNAME: ${{ github.actor }}
-        run: bun main.ts login-ghcr
+        run: ./scripts/login-ghcr.sh
 
       - name: download tested template artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -134,7 +117,7 @@ jobs:
 
       - name: publish template collection
         run: |
-          bun main.ts publish-template \
+          ./scripts/publish-template.sh \
             --distros '${{ needs.restore-validation.outputs.distros }}' \
             --candidateTag "${{ needs.restore-validation.outputs.candidate-tag }}" \
             --imageVersion "${{ needs.restore-validation.outputs.image-version }}"
