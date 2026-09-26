@@ -2,6 +2,7 @@
 set -e
 
 # set zsh completions
+mkdir -p ~/.config/zsh/completions
 if command -v mise >/dev/null 2>&1; then
   mise completion zsh >~/.config/zsh/completions/_mise
 fi
