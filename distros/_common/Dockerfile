@@ -17,6 +17,9 @@ COPY --chmod=755 scripts/04-mise.sh /tmp/scripts/
 RUN --mount=type=secret,id=mise_github_token,env=MISE_GITHUB_TOKEN \
   /tmp/scripts/04-mise.sh
 
+COPY --chmod=755 scripts/05-antidote.sh /tmp/scripts/
+RUN /tmp/scripts/05-antidote.sh
+
 RUN rm -rf /tmp/*
 
 COPY --chmod=755 binscripts/ /usr/local/bin/
@@ -26,6 +29,8 @@ ENV MISE_DEVCONTAINER=1
 ENV HIDE_USERNAME=1
 ENV GOPATH="/home/dev/.go"
 ENV PATH="/home/dev/.local/bin:/usr/local/bin:${GOPATH}/bin:${PATH}"
+ENV ZDOTDIR="/home/dev/.config/zsh"
+ENV ANTIDOTE_HOME="/usr/local/share/antidote"
 
 ENTRYPOINT [ "docker-in-docker.sh" ]
 CMD ["sleep", "infinity"]

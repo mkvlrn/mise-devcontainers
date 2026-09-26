@@ -1,5 +1,5 @@
 [commit-msg.commands]
-cog-lint = { run = "cog verify --file {1}" }
+cog-lint = { run = "mise exec -- cog verify --file {1}" }
 
 [pre-commit.commands]
 lint = { glob = "*.sh", run = "shellcheck -x {staged_files}" }

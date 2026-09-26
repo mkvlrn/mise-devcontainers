@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # test development environment
-for tool in mise docker fish git ssh; do
+for tool in mise docker zsh git ssh; do
   check "$tool is available" command -v "$tool"
 done
 

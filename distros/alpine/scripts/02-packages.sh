@@ -9,7 +9,6 @@ apk add --no-cache \
   curl \
   docker \
   docker-cli-compose \
-  fish \
   gcompat \
   git \
   htop \
@@ -19,7 +18,11 @@ apk add --no-cache \
   openssh-client \
   shadow \
   sudo \
-  tzdata
+  tzdata \
+  zsh
 
-# normalizing fish location
-ln -s /usr/bin/fish /bin/fish
+# normalize zsh location for the configured login shell
+ZSH_PATH="$(command -v zsh)"
+if [ "$ZSH_PATH" != /bin/zsh ] && [ ! -e /bin/zsh ]; then
+  ln -s "$ZSH_PATH" /bin/zsh
+fi

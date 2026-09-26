@@ -8,7 +8,7 @@ USER_GID="$USER_UID"
 
 # create dev user
 groupadd -g "$USER_GID" "$USERNAME"
-useradd -m -s /bin/fish -u "$USER_UID" -g "$USER_GID" "$USERNAME"
+useradd -m -s /bin/zsh -u "$USER_UID" -g "$USER_GID" "$USERNAME"
 usermod -aG docker "$USERNAME"
 
 # configure passwordless sudo
