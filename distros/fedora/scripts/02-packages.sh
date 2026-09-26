@@ -7,7 +7,6 @@ dnf install -y \
   docker-buildx \
   docker-cli \
   docker-compose \
-  fish \
   git \
   htop \
   less \
@@ -18,7 +17,8 @@ dnf install -y \
   tzdata \
   iptables-nft \
   runc \
-  libatomic
+  libatomic \
+  zsh
 
 # prioritize nft iptables for dockerd
 alternatives --set iptables /usr/bin/iptables-nft

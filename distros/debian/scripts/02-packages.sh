@@ -18,13 +18,8 @@ apt-get install -y --no-install-recommends \
   openssh-client \
   sudo \
   tzdata \
-  libatomic1
-
-# add fish apt repo and install fish
-echo 'deb http://download.opensuse.org/repositories/shells:/fish:/release:/4/Debian_13/ /' | tee /etc/apt/sources.list.d/shells:fish:release:4.list
-curl -fsSL https://download.opensuse.org/repositories/shells:fish:release:4/Debian_13/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/shells_fish_release_4.gpg >/dev/null
-apt-get update
-apt-get install -y --no-install-recommends fish
+  libatomic1 \
+  zsh
 
 # cleanup
 apt-get clean

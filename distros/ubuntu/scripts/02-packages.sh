@@ -10,14 +10,14 @@ apt-get install -y --no-install-recommends \
   docker.io \
   docker-buildx \
   docker-compose-v2 \
-  fish \
   git \
   htop \
   less \
   openssh-client \
   sudo \
   tzdata \
-  libatomic1
+  libatomic1 \
+  zsh
 
 # cleanup
 apt-get clean

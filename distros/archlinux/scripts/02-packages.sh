@@ -6,13 +6,13 @@ pacman -S --noconfirm \
   docker \
   docker-buildx \
   docker-compose \
-  fish \
   htop \
   less \
   openssh \
   git \
   sudo \
-  tzdata
+  tzdata \
+  zsh
 
 # cleanup
 pacman -Scc --noconfirm

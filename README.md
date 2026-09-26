@@ -95,7 +95,7 @@ All distros provide:
 
 - [mise](https://mise.jdx.dev/)
 - Docker-in-Docker
-- Fish
+- ZSH
 - Git with SSH signing
 - SSH agent forwarding
 - non-root `dev` user with sudo
