@@ -1,0 +1,25 @@
+[lint]
+description = "Check shell scripts with shellcheck"
+run = """
+mise exec -- shellcheck -x scripts/*.sh test/_common/*.sh test/*/*.sh test/publish-template-test.sh
+"""
+
+[lint-fix]
+description = "Format shell scripts with shfmt"
+run = """
+mise exec -- shfmt -w scripts test
+"""
+
+[test]
+description = "Run test suite"
+run = """
+./test/publish-template-test.sh
+"""
+
+[sync-branch]
+description = "Sync tool versions"
+run = """
+mise install
+mise prune -y
+mise exec -- bun install --frozen-lockfile
+"""

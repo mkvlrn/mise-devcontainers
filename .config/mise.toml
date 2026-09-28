@@ -5,25 +5,12 @@ shellcheck = "0.11.0"
 shfmt = "3.14.1"
 
 [hooks]
-postinstall = "lefthook install"
+postinstall = "mise exec -- lefthook install"
 
 [settings]
 disable_backends = ["asdf"]
 use_versions_host = false
 minimum_release_age = "1d"
 
-[tasks.lint]
-description = "Check shell scripts with shellcheck"
-run = "shellcheck -x scripts/*.sh test/_common/*.sh test/*/*.sh test/publish-template-test.sh"
-
-[tasks.lint-fix]
-description = "Format shell scripts with shfmt"
-run = "shfmt -w scripts test"
-
-[tasks.test]
-description = "Run test suite"
-run = "./test/publish-template-test.sh"
-
-[tasks.sync-branch]
-description = "Sync tool versions"
-run = "mise install && mise prune -y && lefthook install"
+[task_config]
+includes = ["./.config/tasks.toml"]
