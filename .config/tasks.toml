@@ -21,7 +21,6 @@ description = "Sync tool versions"
 run = """
 mise install
 mise prune -y
-mise exec -- bun install --frozen-lockfile
 """
 
 [rebuild-all]
