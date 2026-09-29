@@ -25,6 +25,5 @@ source "$ZDOTDIR/functions.zsh"
 eval "$(~/.local/bin/mise activate zsh)"
 
 # oh-my-posh
-omp_config="$HOME/repos/ts-tools/packages/config/src/mkvlrn.omp.jsonc"
-[[ -f "$omp_config" ]] || omp_config="https://raw.githubusercontent.com/mkvlrn/ts-tools/main/packages/config/src/mkvlrn.omp.jsonc"
+omp_config="https://raw.githubusercontent.com/mkvlrn/ts-tools/main/packages/config/extra/mkvlrn.omp.jsonc"
 eval "$(oh-my-posh init zsh --config "$omp_config")"
