@@ -30,7 +30,7 @@ ENV HIDE_USERNAME=1
 ENV GOPATH="/home/dev/.go"
 ENV PATH="/home/dev/.local/bin:/usr/local/bin:${GOPATH}/bin:${PATH}"
 ENV ZDOTDIR="/home/dev/.config/zsh"
-ENV ANTIDOTE_HOME="/usr/local/share/antidote"
+ENV ANTIDOTE_HOME="/home/dev/.antidote"
 
 ENTRYPOINT [ "docker-in-docker.sh" ]
 CMD ["sleep", "infinity"]
