@@ -2,6 +2,6 @@
 set -e
 
 # install latest Antidote
-rm -rf /usr/local/share/antidote
-git clone --depth=1 https://github.com/mattmc3/antidote.git /usr/local/share/antidote
-chmod -R a+rX /usr/local/share/antidote
+rm -rf /home/dev/.antidote
+git clone --depth=1 https://github.com/mattmc3/antidote.git /home/dev/.antidote
+chown -R dev:dev /home/dev/.antidote
