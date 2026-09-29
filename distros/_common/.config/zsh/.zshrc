@@ -19,7 +19,6 @@ export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 source "$ZDOTDIR/antidote.zsh"
 source "$ZDOTDIR/completion.zsh"
 source "$ZDOTDIR/alias.zsh"
-source "$ZDOTDIR/functions.zsh"
 
 # mise
 eval "$(~/.local/bin/mise activate zsh)"
