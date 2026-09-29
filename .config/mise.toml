@@ -5,7 +5,7 @@ shellcheck = "0.11.0"
 shfmt = "3.14.1"
 
 [hooks]
-postinstall = "mise exec -- lefthook install"
+postinstall = "mise run postinstall-hook"
 
 [settings]
 disable_backends = ["asdf"]
@@ -13,4 +13,4 @@ use_versions_host = false
 minimum_release_age = "1d"
 
 [task_config]
-includes = ["./.config/tasks.toml"]
+includes = [".config/tasks"]
