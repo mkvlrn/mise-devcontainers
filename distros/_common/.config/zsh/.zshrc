@@ -11,12 +11,14 @@ setopt hist_ignore_dups
 setopt hist_ignore_space
 setopt extended_history
 
-autoload -U compinit
-compinit
 export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
-# src
+# Load plugins before initializing completion so plugin completion functions
+# are available when compinit builds its command table.
 source "$ZDOTDIR/antidote.zsh"
+
+autoload -U compinit
+compinit
 source "$ZDOTDIR/completion.zsh"
 source "$ZDOTDIR/alias.zsh"
 
@@ -24,5 +26,6 @@ source "$ZDOTDIR/alias.zsh"
 eval "$(~/.local/bin/mise activate zsh)"
 
 # oh-my-posh
+
 omp_config="https://raw.githubusercontent.com/mkvlrn/ts-tools/main/packages/config/extra/mkvlrn.omp.jsonc"
 eval "$(oh-my-posh init zsh --config "$omp_config")"
