@@ -4,8 +4,8 @@ eza = "0.23.5"
 fastfetch = "2.69.0"
 github-cli = "2.101.0"
 jq = "1.8.2"
-usage = "6.11.1"
-oh-my-posh = "31.3.0"
+usage = "6.12.0"
+oh-my-posh = "31.4.0"
 
 [settings]
 auto_update = true
