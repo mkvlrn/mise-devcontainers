@@ -11,8 +11,8 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
 fi
 
 current_branch=$(git branch --show-current)
-if [ "$current_branch" != "main" ]; then
-  echo "This task must be run from the main branch"
+if [ "$current_branch" != "chore/renovate" ]; then
+  echo "This task must be run from the chore/renovate branch"
   exit 1
 fi
 
