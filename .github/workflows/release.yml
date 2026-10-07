@@ -16,7 +16,10 @@ jobs:
   restore-validation:
     if: >-
       github.event.pull_request.merged == true &&
-      github.event.pull_request.head.ref == 'chore/renovate-batch'
+      (
+        github.event.pull_request.head.ref == 'chore/renovate-batch' ||
+        startsWith(github.event.pull_request.head.ref, 'rebuild-all-')
+      )
     runs-on: ubuntu-latest
     permissions:
       actions: read
