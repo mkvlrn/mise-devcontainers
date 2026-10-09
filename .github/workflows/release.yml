@@ -41,7 +41,7 @@ jobs:
         run: ./scripts/restore-validation.sh
 
       - name: download validation metadata
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: validation-metadata
           path: .tmp/.validation-metadata
@@ -113,7 +113,7 @@ jobs:
         run: ./scripts/login-ghcr.sh
 
       - name: download tested template artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           pattern: template-*
           path: .tmp/.publish-templates
