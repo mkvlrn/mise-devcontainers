@@ -12,7 +12,7 @@ pacman -S --noconfirm \
   git \
   sudo \
   tzdata \
-  zsh
+  fish
 
 # cleanup
 pacman -Scc --noconfirm
