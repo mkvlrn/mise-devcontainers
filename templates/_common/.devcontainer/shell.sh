@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if [ "$#" -eq 0 ]; then
   exec devcontainer exec \
     --workspace-folder "$ROOT" \
-    zsh -l
+    fish -l
 fi
 
 exec devcontainer exec \

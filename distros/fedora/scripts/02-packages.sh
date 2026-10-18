@@ -18,7 +18,7 @@ dnf install -y \
   iptables-nft \
   runc \
   libatomic \
-  zsh
+  fish
 
 # prioritize nft iptables for dockerd
 alternatives --set iptables /usr/bin/iptables-nft

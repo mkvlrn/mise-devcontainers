@@ -19,7 +19,7 @@ apt-get install -y --no-install-recommends \
   sudo \
   tzdata \
   libatomic1 \
-  zsh
+  fish
 
 # cleanup
 apt-get clean

@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
 
-# set zsh completions
-mkdir -p ~/.config/zsh/completions
+# set fish completions
+mkdir -p ~/.config/fish/completions
 if command -v mise >/dev/null 2>&1; then
-  mise completion zsh >~/.config/zsh/completions/_mise
+  mise completion fish >~/.config/fish/completions/mise.fish
 fi
 if command -v gh >/dev/null 2>&1; then
-  gh completion -s zsh >~/.config/zsh/completions/_gh
+  gh completion -s fish >~/.config/fish/completions/gh.fish
 fi
