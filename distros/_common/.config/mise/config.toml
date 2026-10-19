@@ -4,7 +4,7 @@ eza = "0.23.5"
 fastfetch = "2.69.0"
 github-cli = "2.102.0"
 jq = "1.8.2"
-usage = "6.12.1"
+usage = "7.0.2"
 oh-my-posh = "31.7.0"
 
 [settings]
