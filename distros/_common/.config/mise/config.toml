@@ -1,15 +1,13 @@
 [tools]
 "github:o2sh/onefetch" = "3.0.0"
 eza = "0.23.5"
-fastfetch = "2.69.0"
+fastfetch = "2.70.0"
 github-cli = "2.102.0"
 jq = "1.8.2"
-usage = "6.12.1"
-oh-my-posh = "31.7.0"
+usage = "7.0.2"
+oh-my-posh = "31.8.0"
 
 [settings]
-auto_update = true
-auto_update_check_duration = "3d"
 minimum_release_age = "1d"
 disable_backends = ["asdf"]
 trusted_config_paths = ["/code"]
