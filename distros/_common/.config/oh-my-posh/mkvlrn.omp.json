@@ -1,0 +1,134 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "version": 4,
+  "palette": {
+    "black": "#0B0B0B",
+    "blue": "#89B4FA",
+    "bun": "#CFCFCF",
+    "deno": "#FEFEFE",
+    "dotnet": "#AC99EA",
+    "green": "#74E352",
+    "go": "#8ED1F7",
+    "lavender": "#B4BEFE",
+    "node": "#6CA35E",
+    "python": "#f2f683",
+    "red": "#992222",
+    "white": "white"
+  },
+  "console_title_template": "{{ .PWD }}",
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+        {
+          "options": {
+            "style": "full"
+          },
+          "template": "<b>{{ .Path }}</b> ",
+          "foreground": "p:lavender",
+          "background": "transparent",
+          "type": "path",
+          "style": "plain"
+        },
+        {
+          "template": "{{ .UpstreamIcon }}  {{ .HEAD }}{{if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }} ",
+          "foreground": "p:green",
+          "background": "transparent",
+          "type": "git",
+          "style": "plain",
+          "foreground_templates": [
+            "{{ if or (.Working.Changed) (.Staging.Changed) }}#FF9248{{ end }}",
+            "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#FF4500{{ end }}",
+            "{{ if gt .Ahead 0 }}#B388FF{{ end }}",
+            "{{ if gt .Behind 0 }}#B388FF{{ end }}"
+          ]
+        }
+      ],
+      "newline": true
+    },
+    {
+      "type": "prompt",
+      "alignment": "right",
+      "segments": [
+        {
+          "template": "{{ $pkg := readFile \"package.json\" | fromJson }}{{ if eq (dig \"devEngines\" \"runtime\" \"name\" \"\" $pkg) \"node\" }}\udb80\udf99 {{ .Full }} {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }}  {{ else }}{{ end }}{{ end }}",
+          "foreground": "p:node",
+          "background": "transparent",
+          "type": "node",
+          "style": "plain",
+          "options": {
+            "fetch_package_manager": true
+          }
+        },
+        {
+          "template": "{{ if or (glob \"deno.json\") (glob \"deno.lock\") }}\ue7c0 {{ .Full }} {{ else }}{{ end }}",
+          "foreground": "p:deno",
+          "background": "transparent",
+          "type": "deno",
+          "style": "plain"
+        },
+        {
+          "template": "{{ $pkg := readFile \"package.json\" | fromJson }}{{ if eq (dig \"devEngines\" \"runtime\" \"name\" \"\" $pkg) \"bun\" }}\ue76f {{ .Full }} {{ else }}{{ end }}",
+          "foreground": "p:bun",
+          "background": "transparent",
+          "type": "bun",
+          "style": "plain"
+        },
+        {
+          "template": "\ue77f {{ .Full }} ",
+          "foreground": "p:dotnet",
+          "background": "transparent",
+          "type": "dotnet",
+          "style": "plain"
+        },
+        {
+          "options": {
+            "display_mode": "context",
+            "fetch_virtual_env": true
+          },
+          "template": "\ue73c {{ .Full }}{{ if .Venv }} (.venv){{ end }} ",
+          "foreground": "p:python",
+          "background": "transparent",
+          "type": "python",
+          "style": "plain"
+        },
+        {
+          "template": "\ue627 {{ .Full }}",
+          "foreground": "p:go",
+          "background": "transparent",
+          "type": "go",
+          "style": "plain"
+        }
+      ]
+    },
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+        {
+          "template": "{{ if .Env.MISE_DEVCONTAINER }}󰡨 {{ end }}",
+          "foreground": "#1D63ED",
+          "type": "text",
+          "style": "plain"
+        },
+        {
+          "template": "{{ if .Env.HIDE_USERNAME }}{{ else }}{{ .UserName }}@{{ .HostName }}{{ end }}",
+          "foreground": "p:green",
+          "background": "transparent",
+          "type": "session",
+          "style": "plain"
+        },
+        {
+          "template": "➜ ",
+          "foreground": "p:white",
+          "background": "transparent",
+          "type": "text",
+          "style": "plain",
+          "foreground_templates": ["{{ if gt .Code 0 }}red{{ end }}"]
+        }
+      ],
+      "newline": true
+    }
+  ]
+}
